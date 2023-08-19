@@ -12,6 +12,13 @@ public class Point {
     return new Point(this.x, this.y);
   }
 
+  public function equals(point:Point):Boolean {
+    if (this.x == point.x && this.y == point.y) {
+      return true;
+    }
+    return false;
+  }
+
   static public function read_json(json:Object):Point {
     var point:Point = new Point(json.x, json.y);
     return point;

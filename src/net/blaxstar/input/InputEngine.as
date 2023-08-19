@@ -37,14 +37,14 @@
 
     public function InputEngine(stage:Stage, initKeyboard:Boolean = false, initMouse:Boolean = false, initGamepad:Boolean = false) {
       super();
-      stage.addChild(this);      
+      stage.addChild(this);
     }
 
     public function onStage(e:Event):void {
       init(initKeyboard, initMouse, initGamepad);
     }
-    
-    public function init (initKeyboard:Boolean = false, initMouse:Boolean = false, initGamepad:Boolean = false):void {
+
+    public function init(initKeyboard:Boolean = false, initMouse:Boolean = false, initGamepad:Boolean = false):void {
       if (!(initKeyboard == initMouse == initGamepad == false)) {
         return;
       }
@@ -54,9 +54,10 @@
 
         if (stage) {
           this.initKeyboard();
-        } else {
+        }
+        else {
           addEventListener(Event.ADDED_TO_STAGE, this.initKeyboard);
-        } 
+        }
       }
 
       if (initMouse) {
@@ -64,9 +65,10 @@
 
         if (stage) {
           this.initMouse();
-        } else {
+        }
+        else {
           addEventListener(Event.ADDED_TO_STAGE, this.initMouse);
-        } 
+        }
       }
 
       if (initGamepad) {
@@ -74,12 +76,13 @@
 
         if (stage) {
           this.initGamepad();
-        } else {
+        }
+        else {
           addEventListener(Event.ADDED_TO_STAGE, this.initGamepad);
         }
       }
     }
-    
+
     // public
 
     public function getController(playerID:uint):Gamepad {
@@ -149,9 +152,10 @@
       else {
         if (keyEventTrigger == KEYDOWN) {
           stage.addEventListener(KeyboardEvent.KEY_DOWN, delegate);
-        } else if (keyEventTrigger == KEYUP) {
+        }
+        else if (keyEventTrigger == KEYUP) {
           stage.addEventListener(KeyboardEvent.KEY_UP, delegate);
-        } 
+        }
       }
     }
 

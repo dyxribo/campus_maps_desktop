@@ -9,17 +9,18 @@ import geom.Point;
 import net.blaxstar.components.Card;
 
 import net.blaxstar.components.InputTextField;
-import net.blaxstar.input.InputEngine;
 import net.blaxstar.style.Style;
 import structs.Building;
 import structs.Floor;
 import structs.MappableDesk;
 import structs.Subsection;
+import structs.ItemMap;
 
 public class Main extends Sprite {
 
     private var _search_bar:InputTextField;
     private var _search_bar_card:Card;
+    private var _item_map:ItemMap;
 
 
     public function Main() {
@@ -37,6 +38,7 @@ public class Main extends Sprite {
     }
 
     private function init_campus_data():void {
+      _item_map = new ItemMap({});
         var _current_location:Building = new Building("32OS");
         _current_location.add_floor(new Floor("32OS_11F"));
         _current_location.get_floor("32OS_11F").add_subsection(new Subsection("32OS_11F_WEST"));

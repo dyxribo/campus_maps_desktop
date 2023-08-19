@@ -247,6 +247,14 @@ package structs {
       return undefined;
     }
 
+    private function pan():Boolean {
+      if (_current_location.position.equals(_pan_position)) {
+        return false;
+      }
+      _current_map_image.x = -_pan_position.x;
+      return true;
+    }
+
     /**
      * /// TODO: documentation
      */
@@ -270,6 +278,7 @@ package structs {
       }
       if (json.panned) {
         this._pan_position = Point.read_json(json.pan_position);
+        pan();
       }
     }
 

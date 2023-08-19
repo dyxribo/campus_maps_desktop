@@ -138,6 +138,7 @@
       draw();
     }
 
+    // TODO: documentation
     public function set maskThreshold(value:Number):void {
       if (_height_ > value) {
         cacheAsBitmap = true;
