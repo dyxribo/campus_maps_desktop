@@ -3,19 +3,20 @@ package net.blaxstar.style
 import flash.display.DisplayObjectContainer;
 import flash.display.StageAlign;
 import flash.display.StageScaleMode;
+import thirdparty.org.osflash.signals.Signal;
 
 /**
 	 * ...
 	 * @author Deron D. (SnaiLegacy)
 	 * decamp.deron@gmail.com
 	 */
-	public class Style 
+	public class Style
 	{
 		// static
-		
+    static public const ON_THEME_UPDATE:Signal = new Signal();
 		static public const LIGHT:uint = 0;
 		static public const DARK:uint = 1;
-		
+
 		static public var CURRENT_THEME:uint = LIGHT;
 		/*
 		 * Color that appears most frequently across app screens and components.
@@ -30,12 +31,12 @@ import flash.display.StageScaleMode;
 		 */
 		static public var PRIMARY_DARK:RGBA;
 		/**
-		 * Optional color that appears sparingly across app screens and components. 
-		 * Best used for components like floating action buttons, sliders, switches, 
+		 * Optional color that appears sparingly across app screens and components.
+		 * Best used for components like floating action buttons, sliders, switches,
 		 * highlighting selected text, progress bars, links, and headlines.
 		 */
 		static public var SECONDARY:RGBA;
-		
+
 		/**
 		 * Used for contrast between UI elements (secondary).
 		 */
@@ -44,29 +45,29 @@ import flash.display.StageScaleMode;
 		 * Used for contrast between UI elements (secondary).
 		 */
 		static public var SECONDARY_DARK:RGBA;
-		
+
 		/**
-		 * Color that shows behind scrollable content.
+		 * Color that is applied to the background of scrollable content.
 		 */
 		static public var BACKGROUND:RGBA;
 		/**
-		 * Affects surfaces of components, such as cards, sheets, and menus.
+		 * Color that is applied to surfaces of components, such as cards, sheets, and menus.
 		 */
 		static public var SURFACE:RGBA;
 		/**
-		 * Affects the surfaces of components in the "hover" state (usually buttons).
+		 * Color that is applied to the surfaces of components in the "hover" state (usually buttons).
 		 */
 		static public var GLOW:RGBA;
 		/**
-		 * Affects components with errors to display.
+		 * Color that is applied to components with errors to display.
 		 */
 		static public var ERROR:RGBA;
 		/**
-		 * Affects plain text.
+		 * Color that is applied to plain text.
 		 */
 		static public var TEXT:RGBA;
-		
-		static public function init(theme:uint, main:DisplayObjectContainer):void
+
+		static public function init(main:DisplayObjectContainer, theme:uint=Style.DARK):void
 		{
 			setTheme(theme);
 			main.stage.color = BACKGROUND.value;
@@ -78,35 +79,36 @@ import flash.display.StageScaleMode;
 			switch (style)
 			{
 				case DARK:
-					PRIMARY = new RGBA(50, 50, 50);
+					PRIMARY = Color.DARK_GREY;
 					PRIMARY_LIGHT = PRIMARY.tint();
 					PRIMARY_DARK = PRIMARY.shade();
-					SECONDARY = new RGBA(236, 64, 122);
+					SECONDARY = Color.MAGENTA;
 					SECONDARY_LIGHT = SECONDARY.tint();
 					SECONDARY_DARK = SECONDARY.shade();
-					BACKGROUND = new RGBA(50, 50, 50);
-					SURFACE = new RGBA(50, 50, 50);
+					BACKGROUND = PRIMARY;
+					SURFACE = PRIMARY;
 					GLOW = BACKGROUND.tint();
-					ERROR = new RGBA(176, 0, 32);
-					TEXT = new RGBA(250, 250, 250);
+					ERROR = Color.PRODUCT_RED;
+					TEXT = Color.EGGSHELL;
 					CURRENT_THEME = DARK;
 					break;
 				case LIGHT:
 				default:
-					PRIMARY = new RGBA(250, 250, 250);
+					PRIMARY = Color.EGGSHELL;
 					PRIMARY_LIGHT = PRIMARY.tint();
 					PRIMARY_DARK = PRIMARY.shade();
-					SECONDARY = new RGBA(100, 149, 247);
+					SECONDARY = Color.PRODUCT_BLUE;
 					SECONDARY_LIGHT = SECONDARY.tint();
 					SECONDARY_DARK = SECONDARY.shade();
-					BACKGROUND = new RGBA(250, 250, 250);
-					SURFACE = new RGBA(255, 255, 255);
+					BACKGROUND = PRIMARY;
+					SURFACE = Color.WHITE;
 					GLOW = BACKGROUND.shade();
-					ERROR = new RGBA(176, 0, 32);
-					TEXT = new RGBA(50, 50, 50);
+					ERROR = Color.PRODUCT_RED;
+					TEXT = Color.DARK_GREY;
 					CURRENT_THEME = LIGHT;
 					break;
 			}
+      ON_THEME_UPDATE.dispatch();
 		}
 	}
 }

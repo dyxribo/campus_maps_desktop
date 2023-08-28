@@ -47,34 +47,35 @@ package net.blaxstar.components {
     override public function addChildren():void {
       _displayLabel = new PlainText(this, 0, 0, _labelText);
       _displayLabel.width = _width_;
-      
+
       _dropdownButton = new Button(this, _displayLabel.width, 0);
       _dropdownButton.icon = Icon.EXPAND_DOWN;
       _dropdownButton.setSize(MIN_HEIGHT, MIN_HEIGHT);
 
       var buttonIcon:Icon = _dropdownButton.getIcon();
       buttonIcon.setColor(Style.TEXT.value.toString(16));
-      _dropdownButton.onClick.add(onClick);
-      
-      _dropdownList ||= new List(null, 0, _displayLabel.height);
+      _dropdownButton.on_click.add(onClick);
+
+      _dropdownList ||= new List(null, 0, _displayLabel.height - 2);
       _dropdownList.visible = false;
       _dropdownList.width = _displayLabel.width;
       _dropdownList.addClickDelegate(onListItemClick);
-      
+
       super.addChildren();
     }
 
     private function onListItemClick(e:MouseEvent):void {
       _selectedItem = e.currentTarget as ListItem;
+      _labelText = _selectedItem.label;
       draw();
     }
 
     private function onClick(e:MouseEvent):void {
       if (!_dropdownList.parent) {
         addChild(_dropdownList);
-      } 
+      }
       _dropdownList.visible = !_dropdownList.visible;
-      
+
       draw();
     }
 
@@ -95,9 +96,7 @@ package net.blaxstar.components {
         _selectedItem = _dropdownList.getItemAt(0);
       }
 
-      if (_selectedItem) {
-        _displayLabel.text = _selectedItem.label;
-      }
+      _displayLabel.text = _labelText;
 
       super.draw(e);
     }
@@ -106,7 +105,7 @@ package net.blaxstar.components {
       _labelFill = new Sprite();
       var g:Graphics = _labelFill.graphics;
       g.clear();
-      g.lineStyle(1, Style.SECONDARY.value);
+      g.lineStyle(2, Style.SECONDARY.value);
       g.beginFill(Style.SURFACE.value, 1);
       g.drawRoundRect(0, 0, _width_, MIN_HEIGHT, 7, 7);
       g.endFill();
@@ -118,13 +117,22 @@ package net.blaxstar.components {
     }
 
     /** END INTERFACE ===================== */
+    // public
+
     public function addListItem(item:ListItem):void {
       _dropdownList.addItem(item);
     }
-    // public
+    public function multiAddListItemByString(...rest):void {
+
+      _dropdownList.multiAddByStringArray(rest);
+    }
 
     // private
     // getters/setters
+
+    public function get value():String {
+      return _labelText;
+    }
     // delegate functions
   }
 

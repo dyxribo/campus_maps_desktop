@@ -14,8 +14,8 @@ package net.blaxstar.components {
    * @author SnaiLegacy
    */
   public class Card extends Component {
-    static private const MIN_WIDTH:uint = 400;
-    static private const MIN_HEIGHT:uint = 400;
+    static private const MIN_WIDTH:uint = 600;
+    static private const MIN_HEIGHT:uint = 600;
 
     private var _cardBG:Sprite;
     protected var _componentContainer:VerticalBox;
@@ -90,17 +90,16 @@ package net.blaxstar.components {
       }
 
       if (_cardBG) {
-        _cardBG.graphics.clear();
-        _cardBG.graphics.beginFill(Style.SURFACE.value, 1);
-        _cardBG.graphics.lineStyle(0.5, Style.SURFACE.value, .2);
-        _cardBG.graphics.drawRoundRect(0, 0, _width_, _height_, 7);
-        _cardBG.graphics.endFill();
+        drawBG();
         _optionContainer.move(PADDING, _height_ - PADDING - _optionContainer.height);
       }
-
+      super.draw();
     }
 
     /** END INTERFACE ===================== */
+    override public function updateSkin():void {
+      drawBG();
+    }
 
     // adds child to card, nesting it inside a layout container (Vertical Box).
     public function addChildNative(child:DisplayObject):flash.display.DisplayObject {
@@ -166,6 +165,16 @@ package net.blaxstar.components {
           _onClick = new NativeSignal(this, MouseEvent.MOUSE_DOWN, MouseEvent);
         _onClick.add(onSelect);
       }
+    }
+
+    private function drawBG():void {
+      if (!_cardBG) return;
+
+      _cardBG.graphics.clear();
+      _cardBG.graphics.beginFill(Style.SURFACE.value, 1);
+      _cardBG.graphics.lineStyle(0.5, Style.SURFACE.value, .2);
+      _cardBG.graphics.drawRoundRect(0, 0, _width_, _height_, 7);
+      _cardBG.graphics.endFill();
     }
 
     private function onSelect():void {

@@ -13,7 +13,7 @@ import thirdparty.org.osflash.signals.Signal;
     public class SaveData {
         static private const VERSION_MAJOR:uint = 0;
         static private const VERSION_MINOR:uint = 9;
-        static private const VERSION_REVISION:uint = 436;
+        static private const VERSION_REVISION:uint = 495;
         static private const FILE_EXTENSION:String = '.json';
 
         public const ON_SAVE:Signal = new Signal();
@@ -46,7 +46,7 @@ import thirdparty.org.osflash.signals.Signal;
         }
 
         private function load_save_data(file:File):void {
-            var url:URL = new URL(0, _configuration_file_name+FILE_EXTENSION, URL.TEXT, File.applicationDirectory.resolvePath(_configuration_file_name).nativePath);
+            var url:URL = new URL(File.applicationDirectory.resolvePath(_configuration_file_name).nativePath);
             var vec:Vector.<URL> = new Vector.<URL>();
             vec.push(url);
 
@@ -78,6 +78,7 @@ import thirdparty.org.osflash.signals.Signal;
                 _settings[key] = json[key];
                 delete json[key];
             }
+            return _settings;
         }
         // getters; setters /////////////////////////////////////////////////////////////////////////////////////
 

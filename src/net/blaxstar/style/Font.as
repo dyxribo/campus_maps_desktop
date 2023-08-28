@@ -2,15 +2,15 @@ package net.blaxstar.style {
 import flash.text.TextFormat;
 
 /**
-	 * ...
-	 * @author Deron D. (decamp.deron@gmail.com)
+	 * A simple class that holds pre-defined, font-related properties.
+	 * @author Deron Decamp (decamp.deron@gmail.com)
 	 */
 	public class Font {
 		[Embed(source = "fonts/PRODUCT_SANS_REGULAR.TTF", embedAsCFF = "false", fontName = "gsans", mimeType = "application/x-font")]
 		protected const GSANS_REGULAR:Class;
 		[Embed(source = "fonts/PRODUCT_SANS_BOLD.TTF", embedAsCFF = "false", fontName = "gsans_bold", mimeType = "application/x-font")]
 		protected const GSANS_BOLD:Class;
-		
+
 		static public const H1:TextFormat         = new TextFormat(Font.gsans, 96);
 		static public const H2:TextFormat         = new TextFormat(Font.gsans, 60);
 		static public const H3:TextFormat         = new TextFormat(Font.gsans, 48);
@@ -25,7 +25,7 @@ import flash.text.TextFormat;
 		static public const CAPTION:TextFormat    = new TextFormat(Font.gsans, 12);
 		static public const OVERLINE:TextFormat   = new TextFormat(Font.gsans, 10);
 		public static var embedFonts:Boolean;
-		
+
 		static public function init():void {
 			H1.letterSpacing = -1.5;
 			H2.letterSpacing = -0.5;
@@ -40,15 +40,15 @@ import flash.text.TextFormat;
 			OVERLINE.letterSpacing = 1.5;
 			embedFonts = true;
 		}
-		
+
 		static public function get gsans():String {
 			return "gsans";
 		}
-		
+
 		static public function get gsansBold():String {
 			return "gsans_bold";
 		}
-	
+
 	}
 
 }

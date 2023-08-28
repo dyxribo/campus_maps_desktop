@@ -13,6 +13,7 @@
   import net.blaxstar.input.gamepad.types.OuyaGamepad;
   import net.blaxstar.input.gamepad.types.Xbox360Gamepad;
   import flash.display.Stage;
+  import debug.DebugDaemon;
 
   /**
    * Enumerated type holding all the key code values and their names.
@@ -37,11 +38,11 @@
 
     public function InputEngine(stage:Stage, initKeyboard:Boolean = false, initMouse:Boolean = false, initGamepad:Boolean = false) {
       super();
-      stage.addChild(this);
-    }
-
-    public function onStage(e:Event):void {
-      init(initKeyboard, initMouse, initGamepad);
+      if (!stage) {
+        DebugDaemon.write_log("failed to instantiate InputEngine: stage is null, use init() first.", DebugDaemon.ERROR_IO);
+      } else {
+        stage.addChild(this);
+      }
     }
 
     public function init(initKeyboard:Boolean = false, initMouse:Boolean = false, initGamepad:Boolean = false):void {

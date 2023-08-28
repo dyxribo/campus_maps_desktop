@@ -3,6 +3,8 @@ package net.blaxstar.components {
   import flash.events.Event;
   import flash.events.MouseEvent;
   import thirdparty.com.lorentz.processing.ProcessExecutor;
+  import net.blaxstar.style.Color;
+  import net.blaxstar.style.Style;
 
   public class Stepper extends Component {
 
@@ -29,8 +31,9 @@ package net.blaxstar.components {
       _upButton.icon = Icon.PLUS_CIRCLED;
       _downButton.style = _upButton.style = Button.DEPRESSED;
 
-      _downButton.onClick.add(stepDown);
-      _upButton.onClick.add(stepUp);
+      updateSkin();
+      _downButton.on_click.add(stepDown);
+      _upButton.on_click.add(stepUp);
       super.addChildren();
     }
 
@@ -39,6 +42,12 @@ package net.blaxstar.components {
       _box.alignment = HorizontalBox.CENTER;
       _width_ = _box.width;
       _height_ = _box.height;
+      super.draw();
+    }
+
+    override public function updateSkin():void {
+      _downButton.getIcon().setColor(Style.SECONDARY.value.toString());
+      _upButton.getIcon().setColor(Style.SECONDARY.value.toString());
     }
 
     private function stepUp(e:MouseEvent):void {

@@ -26,10 +26,12 @@ package net.blaxstar.components {
     private var _useSelectionIndicator:Boolean;
     private var _alternatingColors:Boolean;
     private var _customDelegates:Vector.<Function>;
+    private var _defaultFill:uint;
 
     public function List(parent:DisplayObjectContainer = null, xpos:Number = 0, ypos:Number = 0, altColors:Boolean = false) {
       super(parent, xpos, ypos);
       _alternatingColors = altColors;
+      _defaultFill = Style.SURFACE.value;
     }
 
     override public function init():void {
@@ -53,28 +55,33 @@ package net.blaxstar.components {
      * (re)draws the component and applies any pending visual changes.
      */
     override public function draw(e:Event = null):void {
-      if (_itemContainer.numChildren > 0)
+      if (_itemContainer.numChildren > 0) {
         _itemContainer.removeChildren();
-
+      }
+      
       for (var i:uint; i < _items.length; i++) {
         _itemContainer.addChild(_items[i]);
         if (_alternatingColors) {
           if (i % 2 == 0)
-            _items[i].alternateColor = true;
+            _items[i].fillColor = Style.SURFACE.tint().value;
         }
         _width_ = Math.max(_listWidth, _items[i].labelComponent.width + 10);
 
       }
       _height_ = _itemContainer.height;
-      resetListBG();
+      deselectAllItems();
       super.draw();
     }
 
-    private function resetListBG():void {
-      graphics.clear();
-      graphics.beginFill(Style.SURFACE.value);
-      graphics.drawRoundRect(0, 0, _width_, _height_, 7);
-      graphics.endFill();
+    override public function updateSkin():void {
+      _defaultFill = Style.SURFACE.value;
+    }
+
+    private function deselectAllItems():void {
+
+      for (var i:uint = 0; i < _items.length; i++) {
+        _items[i].fillColor = _defaultFill;
+      }
       applyShadow();
     }
 
@@ -102,11 +109,12 @@ package net.blaxstar.components {
         else {
           _itemsCache[li.linkageid] = li;
           _items.push(li);
-          li.setSize(_listWidth + (PADDING * 2), _itemHeight);
+          li.setSize(_listWidth, _itemHeight + PADDING);
           li.onResize.add(onItemResize);
           li.onRollOver.add(onItemRollOver);
           li.onRollOut.add(onItemRollOut);
           li.onClick.add(onItemClick);
+          li.mouseChildren = false;
           if (_customDelegates) {
             for (var j:uint = 0; j < _customDelegates.length; j++) {
               li.onClick.add(_customDelegates[j]);
@@ -118,9 +126,19 @@ package net.blaxstar.components {
       }
       return this;
     }
+    
+    public function multiAddByStringArray(itemStringArray:Array):void {
+      for (var i:uint = 0; i < itemStringArray.length; i++) {
+        if (itemStringArray[i] is String) {
+          addItem(new ListItem(null,0,0,itemStringArray[i]));
+        }
+      }
+    }
 
     public function getCachedItemByID(id:uint):ListItem {
       var li:ListItem;
+      // for .. in required, since dictionary has no length prop.
+      // maybe create a length prop in this class later? would definitely improve performance
       for (var item:String in _itemsCache) {
         if (_itemsCache[item].linkageid == id) {
           li = _itemsCache[item] as ListItem;
@@ -153,19 +171,17 @@ package net.blaxstar.components {
     }
 
     private function onItemRollOut(e:MouseEvent):void {
-      resetListBG();
+      deselectAllItems();
     }
 
     private function onItemRollOver(e:MouseEvent = null):void {
       var li:ListItem = (e.currentTarget as ListItem);
-      resetListBG();
+      deselectAllItems();
       selectItem(li);
     }
 
     private function selectItem(li:ListItem):void {
-      graphics.beginFill((Style.CURRENT_THEME == Style.DARK) ? Style.GLOW.value : Style.GLOW.tint().value);
-      graphics.drawRoundRect(li.x, li.y, _listWidth, li.height + PADDING, 7);
-      graphics.endFill();
+      li.fillColor = (Style.CURRENT_THEME == Style.DARK) ? Style.GLOW.value : Style.GLOW.tint().value;
       applyShadow();
     }
 

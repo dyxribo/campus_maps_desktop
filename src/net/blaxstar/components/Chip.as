@@ -51,7 +51,7 @@ package net.blaxstar.components {
       _closeButton.icon = Icon.CLOSE;
       _closeButton.getIcon().setColor('#' + Style.TEXT.value.toString(16));
       _closeButton.setSize(16, 16);
-      _closeButton.onClick.add(removeChip);
+      _closeButton.on_click.add(removeChip);
     }
 
     private function removeChip(e:MouseEvent):void {

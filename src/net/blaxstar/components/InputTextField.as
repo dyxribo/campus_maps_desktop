@@ -7,7 +7,6 @@ package net.blaxstar.components {
   import flash.events.FocusEvent;
   import flash.events.KeyboardEvent;
   import flash.events.MouseEvent;
-  import flash.filesystem.File;
   import flash.text.AntiAliasType;
   import flash.text.GridFitType;
   import flash.text.TextField;
@@ -19,9 +18,9 @@ package net.blaxstar.components {
   import net.blaxstar.style.Font;
   import net.blaxstar.style.Style;
 
-import shared.BxEngine;
 
 import thirdparty.org.osflash.signals.natives.NativeSignal;
+import debug.DebugDaemon;
 
   /**
    * ...
@@ -47,6 +46,7 @@ import thirdparty.org.osflash.signals.natives.NativeSignal;
     private var _suggestionCache:Vector.<Suggestion>;
     private var _selectedSuggestion:Suggestion;
     private var _suggestionsAvailable:Boolean;
+    private var _is_password_field:Boolean;
 
     private var _input_engine:InputEngine;
     private var _onFocus:NativeSignal;
@@ -100,29 +100,31 @@ import thirdparty.org.osflash.signals.natives.NativeSignal;
       _onTextChange = new NativeSignal(_textField, Event.CHANGE, Event);
       _onFocus.add(onFocus);
       _onTextChange.add(onTextChange);
-      _input_engine = new InputEngine(stage, true);
+
       super.addChildren();
 
+    }
+
+    override protected function on_added(e:Event):void {
+      _input_engine = new InputEngine(stage, true);
+      draw();
     }
 
     override public function draw(e:Event = null):void {
       if (_textField.text == _hintText || _textField.text.length < 1) {
         if (Style.CURRENT_THEME == Style.DARK) {
           _textField.textColor = Style.TEXT.shade().value;
-        }
-        else {
+        } else {
           _textField.textColor = Style.TEXT.tint().value;
         }
-      }
-      else {
+      } else {
         _textField.textColor = Style.TEXT.value;
       }
       _textField.text = _textFieldString;
       _textField.height = _textField.textHeight + 4;
       if (_showingUnderline) {
         updateUnderline();
-      }
-      else {
+      } else {
         _width_ = _textField.width;
         _height_ = _textField.height;
       }
@@ -131,7 +133,8 @@ import thirdparty.org.osflash.signals.natives.NativeSignal;
 
     override public function addChild(child:DisplayObject):DisplayObject {
       if (child is Icon) {
-        throw 'please use leadingIcon property for adding an icon to InputTextField!';
+        DebugDaemon.write_log("please use leadingIcon property for adding an " +
+        "icon to InputTextField!", DebugDaemon.ERROR_MISUSE);
       }
       return super.addChild(child);
     }
@@ -187,7 +190,7 @@ import thirdparty.org.osflash.signals.natives.NativeSignal;
               _suggestionList.addItem(item);
             }
             else {
-              item = new ListItem(_suggestionList, 0, 0, currentSuggestion);
+              item = new ListItem(_suggestionList, 0, 0, currentSuggestion.label);
               item.linkageid = currentSuggestion.linkageid;
               item.label = currentSuggestion.label;
               item.onClick.add(onSuggestionSelect);
@@ -308,6 +311,9 @@ import thirdparty.org.osflash.signals.natives.NativeSignal;
       draw();
     }
 
+    public function set display_as_password(val:Boolean):void {
+      _is_password_field = val;
+    }
     // delegate functions
 
     private function onKeyPress(e:KeyboardEvent):void {
@@ -345,7 +351,9 @@ import thirdparty.org.osflash.signals.natives.NativeSignal;
       _textField.textColor = Style.TEXT.value;
       if (_textField.text == _hintText) {
         _textField.text = "";
-
+        if (_is_password_field) {
+          _textField.displayAsPassword = true;
+        }
       }
 
       if (_showingUnderline) {
@@ -385,6 +393,10 @@ import thirdparty.org.osflash.signals.natives.NativeSignal;
       else
         _textField.textColor = Style.TEXT.tint().value;
       _textField.text = _hintText;
+
+      if (_is_password_field) {
+        _textField.displayAsPassword = false;
+      }
     }
 
     private function onTextChange(e:Event):void {

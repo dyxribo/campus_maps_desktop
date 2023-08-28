@@ -9,10 +9,11 @@ package net.blaxstar.components {
   import flash.events.IEventDispatcher;
   import flash.filters.DropShadowFilter;
 
-import net.blaxstar.math.Arithmetic;
+  import net.blaxstar.math.Arithmetic;
 
   import thirdparty.org.osflash.signals.Signal;
   import thirdparty.org.osflash.signals.natives.NativeSignal;
+  import net.blaxstar.style.Style;
 
   /**
    * Base Component Class.
@@ -87,10 +88,14 @@ import net.blaxstar.math.Arithmetic;
       if (!onDraw)
         onDraw = new Signal();
       addChildren();
-      onAdded.addOnce(draw);
+      onAdded.addOnce(on_added);
       onEnterFrame.add(checkQueue);
+      Style.ON_THEME_UPDATE.add(draw);
     }
 
+    protected function on_added(e:Event):void {
+      draw();
+    }
     /**
      * queues a function for later execution.
      * @param func  function to be queued.
@@ -133,12 +138,17 @@ import net.blaxstar.math.Arithmetic;
     public function draw(e:Event = null):void {
       // dispatches a DRAW event
       // onEnterFrame.remove(draw);
+      updateSkin();
       if (isShowingBounds)
         updateBounds();
       onDraw.dispatch();
     }
 
     /** END INTERFACE ===================== */
+
+    public function updateSkin():void {
+
+    }
 
     /**
      * marks the component for redraw on the next frame.

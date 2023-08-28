@@ -85,7 +85,8 @@ package net.blaxstar.components {
       _label.format(Font.BUTTON);
       _glowColor = Style.GLOW;
       TweenPlugin.activate([TintPlugin]);
-      commit();
+      //commit();
+      super.addChildren();
     }
 
     /**
@@ -109,12 +110,16 @@ package net.blaxstar.components {
 
       _onMouseDown.add(onMouseDown);
       _onRollOver.add(onRollOver);
-      onDraw.dispatch();
+      super.draw();
     }
 
     /** END INTERFACE ===================== */
 
     // public
+    override public function updateSkin():void {
+      drawBG();
+      drawBGOutline();
+    }
 
     public function addClickListener(delegate:Function):void {
       if (!_onMouseClick)
@@ -146,7 +151,7 @@ package net.blaxstar.components {
     }
 
     private function drawBGOutline():void {
-      _backgroundOutline.graphics.lineStyle(1, Style.SECONDARY.value, 1, true);
+      _backgroundOutline.graphics.lineStyle(2, Style.SECONDARY.value, 1, true);
       if (!_usingIcon)
         _backgroundOutline.graphics.drawRoundRect(0, 0, _width_, _height_, 6);
       else
@@ -199,7 +204,7 @@ package net.blaxstar.components {
       commit();
     }
 
-    public function get onClick():NativeSignal {
+    public function get on_click():NativeSignal {
       return _onMouseClick;
     }
 
