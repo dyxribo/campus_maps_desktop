@@ -1,3 +1,16 @@
 {
-  "as3mxml.sdk.framework": "c:\\airsdk"
+  "as3mxml.sdk.framework": "c:\\airsdk",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  },
+  "[actionscript]": {
+    "editor.autoClosingDelete": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoIndent": "advanced",
+    "editor.cursorStyle": "line-thin",
+    "editor.defaultFormatter": "bowlerhatllc.vscode-as3mxml",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "bounded",
+    "editor.wordWrapColumn": 80,
+  },
 }
