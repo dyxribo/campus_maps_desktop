@@ -4,22 +4,22 @@ import debug.DebugDaemon;
 
 import flash.display.Sprite;
 
-import net.blaxstar.components.Card;
+import net.blaxstar.starlib.components.Card;
 
-import net.blaxstar.components.InputTextField;
-import net.blaxstar.style.Style;
+import net.blaxstar.starlib.components.InputTextField;
+import net.blaxstar.starlib.style.Style;
 import structs.Building;
 import structs.Floor;
 import structs.MappableDesk;
 import structs.Subsection;
 import structs.ItemMap;
-import net.blaxstar.networking.APIRequestManager;
-import net.blaxstar.components.Dialog;
+import net.blaxstar.starlib.networking.APIRequestManager;
+import net.blaxstar.starlib.components.Dialog;
 import flash.events.Event;
-import net.blaxstar.components.Button;
+import net.blaxstar.starlib.components.Button;
 import flash.events.MouseEvent;
-import net.blaxstar.style.Font;
-import net.blaxstar.io.URL;
+import net.blaxstar.starlib.style.Font;
+import net.blaxstar.starlib.io.URL;
 import debug.printf;
 import config.SaveData;
 import flash.display.StageScaleMode;

@@ -1,11 +1,11 @@
 package config {
-    import net.blaxstar.io.URL;
-    import net.blaxstar.io.IOUtil;
+    import net.blaxstar.starlib.io.URL;
+    import net.blaxstar.starlib.io.IOUtil;
     import flash.filesystem.File;
     import flash.utils.ByteArray;
     import flash.net.registerClassAlias;
 
-import net.blaxstar.io.XLoader;
+import net.blaxstar.starlib.io.XLoader;
 
 import thirdparty.org.osflash.signals.Signal;
     import flash.utils.Dictionary;
@@ -13,7 +13,7 @@ import thirdparty.org.osflash.signals.Signal;
     public class SaveData {
         static private const VERSION_MAJOR:uint = 0;
         static private const VERSION_MINOR:uint = 9;
-        static private const VERSION_REVISION:uint = 495;
+        static private const VERSION_REVISION:uint = 533;
         static private const FILE_EXTENSION:String = '.json';
 
         public const ON_SAVE:Signal = new Signal();

@@ -7,11 +7,10 @@
       "label": "setvars",
       "type": "process",
       "command": [
-        "go"
+        "python"
       ],
       "args": [
-        "run",
-        "${workspaceFolder}\\scripts\\setvars.go"
+        "${workspaceFolder}\\scripts\\setvars.py"
     ]
     },
     {
