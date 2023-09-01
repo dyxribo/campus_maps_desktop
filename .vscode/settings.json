@@ -8,7 +8,7 @@
     "editor.autoClosingOvertype": "always",
     "editor.autoIndent": "advanced",
     "editor.cursorStyle": "line-thin",
-    "editor.defaultFormatter": "bowlerhatllc.vscode-as3mxml",
+    "editor.defaultFormatter": "lonewolf.vscode-astools",
     "editor.formatOnSave": true,
     "editor.wordWrap": "bounded",
     "editor.wordWrapColumn": 80,
