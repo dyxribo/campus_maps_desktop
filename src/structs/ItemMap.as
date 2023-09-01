@@ -16,9 +16,9 @@ package structs {
     import flash.events.MouseEvent;
     import flash.display.Graphics;
     import flash.events.NativeWindowBoundsEvent;
-    import flash.display.BitmapData;
-    import flash.utils.ByteArray;
+
     import net.blaxstar.starlib.components.ContextMenu;
+    import net.blaxstar.starlib.components.ListItem;
 
     /**
      * /// TODO: documentation
@@ -452,10 +452,31 @@ package structs {
         private function on_right_click(e:MouseEvent):void {
             e.preventDefault();
             // TODO: display context menu with easy actions
-            _context_menu.move(mouseX, mouseY);
+            if (_context_menu.has_context('map_general')) {
+                _context_menu.set_context('map_general');
+            } else {
+                _context_menu.add_context('map_general');
+                _context_menu.add_context_item("add new desk location", on_context_click, 'map_general');
+                _context_menu.add_context_item("add new PC location", on_context_click, 'map_general');
+                _context_menu.set_context('map_general');
+            }
+
+            var mouse_point:Point = new Point(mouseX - _image_container.x, mouseY - _image_container.y);
+            _context_menu.move(mouse_point.x, mouse_point.y);
             _context_menu.show();
 
             DebugDaemon.write_log("point pinged @ %s, %s", DebugDaemon.DEBUG, mouseX - _image_container.x, mouseY - _image_container.y);
+        }
+
+        private function on_context_click(e:MouseEvent):void {
+            switch ((e.currentTarget as ListItem).label) {
+                case "add location item":
+                    trace("liftoff");
+                    break;
+                default:
+                    break;
+            }
+            _context_menu.hide(true);
         }
 
         private function on_scroll_wheel(e:MouseEvent):void {
