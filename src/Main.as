@@ -76,7 +76,7 @@ public class Main extends Sprite {
       _db_login_prompt.addComponent(_db_login_username_field);
       _db_login_prompt.addComponent(_db_login_password_field);
       _db_login_prompt.addComponent(_db_login_submit_button);
-      _db_login_prompt.setSize(300,300);
+      _db_login_prompt.set_size(300,300);
       _db_login_prompt.draggable = false;
 
       _db_login_submit_button.on_click.add(on_login_form_submit);

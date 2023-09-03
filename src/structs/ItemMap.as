@@ -19,6 +19,7 @@ package structs {
 
     import net.blaxstar.starlib.components.ContextMenu;
     import net.blaxstar.starlib.components.ListItem;
+    import flash.events.FocusEvent;
 
     /**
      * /// TODO: documentation
@@ -41,11 +42,15 @@ package structs {
         private var _pan_position:Point;
         private var _context_menu:ContextMenu;
         private var _dispatcher:Signal;
-        private var _on_mouse_down:NativeSignal;
-        private var _on_mouse_up:NativeSignal;
-        private var _on_release_outside:NativeSignal;
-        private var _on_scroll_wheel:NativeSignal;
-        private var _on_right_click:NativeSignal;
+
+        private var _on_context_menu_roll_out:NativeSignal;
+        private var _on_context_menu_release_outside:NativeSignal;
+        private var _on_context_menu_defocus:NativeSignal;
+        private var _on_image_container_mouse_down:NativeSignal;
+        private var _on_image_container_mouse_up:NativeSignal;
+        private var _on_image_container_release_outside:NativeSignal;
+        private var _on_image_container_scroll_wheel:NativeSignal;
+        private var _on_image_container_right_click:NativeSignal;
         private var _on_viewport_resize:NativeSignal;
 
         /**
@@ -379,17 +384,24 @@ package structs {
          *
          */
         private function add_image_container_listeners():void {
-            _on_mouse_down = new NativeSignal(_image_container, MouseEvent.MOUSE_DOWN, MouseEvent);
-            _on_mouse_up = new NativeSignal(_image_container, MouseEvent.MOUSE_UP, MouseEvent);
-            _on_release_outside = new NativeSignal(_image_container, MouseEvent.RELEASE_OUTSIDE, MouseEvent);
-            _on_right_click = new NativeSignal(_image_container, MouseEvent.RIGHT_CLICK, MouseEvent);
-            _on_scroll_wheel = new NativeSignal(_image_container, MouseEvent.MOUSE_WHEEL, MouseEvent);
-            _on_viewport_resize = new NativeSignal(stage.nativeWindow, NativeWindowBoundsEvent.RESIZE, NativeWindowBoundsEvent);
+            _on_image_container_mouse_down ||= new NativeSignal(_image_container, MouseEvent.MOUSE_DOWN, MouseEvent);
+            _on_image_container_mouse_up ||= new NativeSignal(_image_container, MouseEvent.MOUSE_UP, MouseEvent);
+            _on_image_container_release_outside ||= new NativeSignal(_image_container, MouseEvent.RELEASE_OUTSIDE, MouseEvent);
+            _on_image_container_right_click ||= new NativeSignal(_image_container, MouseEvent.RIGHT_CLICK, MouseEvent);
+            _on_image_container_scroll_wheel ||= new NativeSignal(_image_container, MouseEvent.MOUSE_WHEEL, MouseEvent);
+            _on_viewport_resize ||= new NativeSignal(stage.nativeWindow, NativeWindowBoundsEvent.RESIZE, NativeWindowBoundsEvent);
 
-            _on_mouse_down.add(on_mouse_down);
-            _on_right_click.add(on_right_click);
-            _on_scroll_wheel.add(on_scroll_wheel);
+            _on_image_container_mouse_down.add(on_mouse_down);
+            _on_image_container_right_click.add(on_right_click);
+            _on_image_container_scroll_wheel.add(on_scroll_wheel);
             _on_viewport_resize.add(on_viewport_resize);
+        }
+
+        private function remove_image_container_listeners():void {
+            _on_image_container_mouse_down.remove(on_mouse_down);
+            _on_image_container_right_click.remove(on_right_click);
+            _on_image_container_scroll_wheel.remove(on_scroll_wheel);
+            _on_viewport_resize.remove(on_viewport_resize);
         }
 
         /**
@@ -435,17 +447,17 @@ package structs {
         }
 
         private function on_mouse_down(e:MouseEvent):void {
-            _on_mouse_down.remove(on_mouse_down);
-            _on_mouse_up.add(on_mouse_up);
-            _on_release_outside.add(on_mouse_up);
+            _on_image_container_mouse_down.remove(on_mouse_down);
+            _on_image_container_mouse_up.add(on_mouse_up);
+            _on_image_container_release_outside.add(on_mouse_up);
             _image_container.startDrag();
 
         }
 
         private function on_mouse_up(e:MouseEvent):void {
-            _on_mouse_up.remove(on_mouse_up);
-            _on_release_outside.remove(on_mouse_up);
-            _on_mouse_down.add(on_mouse_down);
+            _on_image_container_mouse_up.remove(on_mouse_up);
+            _on_image_container_release_outside.remove(on_mouse_up);
+            _on_image_container_mouse_down.add(on_mouse_down);
             _image_container.stopDrag();
         }
 
@@ -464,8 +476,45 @@ package structs {
             var mouse_point:Point = new Point(mouseX - _image_container.x, mouseY - _image_container.y);
             _context_menu.move(mouse_point.x, mouse_point.y);
             _context_menu.show();
+            add_context_menu_listeners();
+            remove_image_container_listeners();
 
             DebugDaemon.write_log("point pinged @ %s, %s", DebugDaemon.DEBUG, mouseX - _image_container.x, mouseY - _image_container.y);
+        }
+
+        private function add_context_menu_listeners():void {
+          _on_context_menu_roll_out ||= new NativeSignal(_context_menu, MouseEvent.ROLL_OUT, MouseEvent);
+          _on_context_menu_release_outside ||= new NativeSignal(_context_menu, MouseEvent.RELEASE_OUTSIDE, MouseEvent);
+          _on_context_menu_defocus ||= new NativeSignal(stage, MouseEvent.CLICK, MouseEvent);
+
+          _on_context_menu_roll_out.add(on_context_menu_roll_out);
+          _on_context_menu_release_outside.add(on_context_menu_release_outside);
+          _on_context_menu_defocus.add(on_context_menu_defocus);
+        }
+
+        private function remove_context_menu_listeners():void {
+          _on_context_menu_roll_out.remove(on_context_menu_roll_out);
+          _on_context_menu_release_outside.remove(on_context_menu_release_outside);
+          _on_context_menu_defocus.remove(on_context_menu_defocus);
+        }
+
+        private function on_context_menu_roll_out(e:MouseEvent):void {
+          _context_menu.clear_selection();
+        }
+
+        private function on_context_menu_release_outside(e:MouseEvent):void {
+          remove_context_menu_listeners();
+          _context_menu.hide(true);
+          add_image_container_listeners();
+        }
+
+        private function on_context_menu_defocus(e:MouseEvent):void {
+          if (e.currentTarget !== _context_menu) {
+            _on_context_menu_defocus.remove(on_context_menu_defocus);
+            remove_context_menu_listeners();
+            _context_menu.hide(true)
+            add_image_container_listeners();
+          }
         }
 
         private function on_context_click(e:MouseEvent):void {
