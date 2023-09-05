@@ -13,7 +13,7 @@ import thirdparty.org.osflash.signals.Signal;
     public class SaveData {
         static private const VERSION_MAJOR:uint = 0;
         static private const VERSION_MINOR:uint = 9;
-        static private const VERSION_REVISION:uint = 660;
+        static private const VERSION_REVISION:uint = 700;
         static private const FILE_EXTENSION:String = '.json';
 
         public const ON_SAVE:Signal = new Signal();

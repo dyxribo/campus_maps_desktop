@@ -1,25 +1,28 @@
 package structs {
-    import flash.display.Bitmap;
-    import flash.display.Sprite;
-    import flash.utils.Dictionary;
-    import geom.Point;
-    import net.blaxstar.starlib.utils.StringUtil;
-    import thirdparty.org.osflash.signals.ISlot;
-    import thirdparty.org.osflash.signals.Signal;
     import config.SaveData;
-    import flash.filesystem.File;
+
     import debug.DebugDaemon;
-    import net.blaxstar.starlib.io.XLoader;
-    import net.blaxstar.starlib.io.URL;
-    import thirdparty.com.greensock.TweenLite;
-    import thirdparty.org.osflash.signals.natives.NativeSignal;
-    import flash.events.MouseEvent;
+
+    import flash.display.Bitmap;
     import flash.display.Graphics;
+    import flash.display.Sprite;
+    import flash.events.MouseEvent;
     import flash.events.NativeWindowBoundsEvent;
+    import flash.filesystem.File;
+    import flash.utils.Dictionary;
+
+    import geom.Point;
 
     import net.blaxstar.starlib.components.ContextMenu;
     import net.blaxstar.starlib.components.ListItem;
-    import flash.events.FocusEvent;
+    import net.blaxstar.starlib.io.URL;
+    import net.blaxstar.starlib.io.XLoader;
+    import net.blaxstar.starlib.utils.StringUtil;
+
+    import thirdparty.com.greensock.TweenLite;
+    import thirdparty.org.osflash.signals.ISlot;
+    import thirdparty.org.osflash.signals.Signal;
+    import thirdparty.org.osflash.signals.natives.NativeSignal;
 
     /**
      * /// TODO: documentation
@@ -64,8 +67,8 @@ package structs {
             super();
             _buildings = new Map(String, Building);
             _dispatcher = new Signal(Building);
-
             _image_loader = new XLoader();
+
 
             // TODO| load default map graphic from savedata, otherwise load last
             // TODO| visited location via set_location.
@@ -82,7 +85,7 @@ package structs {
                 return;
             }
 
-            var matches:Building = this.split_link_to_building(location_link);
+            var matches:Building = this.resolve_link(location_link);
             var building_id:String = matches.id;
             var floor_id:String = matches.current_floor_id;
             var subsection_id:String = matches.current_subsection_id;
@@ -120,7 +123,7 @@ package structs {
             var location_results:Vector.<Building> = new Vector.<Building>();
 
             // look for exact match first
-            var matches:Building = this.split_link_to_building(query);
+            var matches:Building = this.resolve_link(query);
             var building:Building;
 
             if (this.building_exists(matches.id)) {
@@ -220,7 +223,7 @@ package structs {
         private function display_map(floor_link:String):void {
             // maps should be all floors obviously,
             // so the floor id is what 'map_id' should be referencing.
-            var target_location:Building = split_link_to_building(floor_link);
+            var target_location:Building = resolve_link(floor_link);
 
             if (!target_location || !target_location.id || !target_location.current_floor_id) {
                 DebugDaemon.write_log("cannot display map: the location link is malformed. got: %s", DebugDaemon.ERROR_GENERIC, floor_link);
@@ -273,7 +276,7 @@ package structs {
          * @param search_string
          * @returns
          */
-        private function split_link_to_building(location_link:String):Building {
+        private function resolve_link(location_link:String):Building {
             var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
 
             if (link_elements.length) {
@@ -397,7 +400,7 @@ package structs {
             _on_viewport_resize.add(on_viewport_resize);
         }
 
-        private function remove_image_container_listeners():void {
+        private function remove_image_container_mouse_listeners():void {
             _on_image_container_mouse_down.remove(on_mouse_down);
             _on_image_container_right_click.remove(on_right_click);
             _on_image_container_scroll_wheel.remove(on_scroll_wheel);
@@ -433,16 +436,32 @@ package structs {
 
             if (!_image_container) {
                 _image_container = new Sprite();
+                _context_menu = new ContextMenu();
+                _context_menu.hide();
+
+                // register contexts for context menu
+                var context_map_general:Array = [Contexts.CONTEXT_MAP_GENERAL_ADD_ITEM,
+                    Contexts.CONTEXT_MAP_GENERAL_CREATE_PATH];
+
+                var context_map_item:Array = [Contexts.CONTEXT_MAP_ITEM_RENAME_ITEM,
+                    Contexts.CONTEXT_MAP_ITEM_MOVE_ITEM,
+                    Contexts.CONTEXT_MAP_ITEM_ARCHIVE_ITEM,
+                    Contexts.CONTEXT_MAP_ITEM_DELETE_ITEM];
+
+                _context_menu.add_context_array(context_map_general, Contexts.CONTEXT_MAP_GENERAL, on_context_click);
+
+                _context_menu.add_context_array(context_map_item, Contexts.CONTEXT_MAP_ITEM, on_context_click);
+
+                _context_menu.set_context(Contexts.CONTEXT_MAP_GENERAL);
             }
 
             _current_map_image = loaded_image;
             _image_container.addChild(_current_map_image);
             addChild(_image_container);
             addChild(_image_mask);
+            _image_container.addChild(_context_menu);
             draw_image_mask();
             _image_container.mask = _image_mask;
-            _context_menu = new ContextMenu(_image_container);
-            _context_menu.hide();
             add_image_container_listeners();
         }
 
@@ -464,63 +483,58 @@ package structs {
         private function on_right_click(e:MouseEvent):void {
             e.preventDefault();
             // TODO: display context menu with easy actions
-            if (_context_menu.has_context('map_general')) {
-                _context_menu.set_context('map_general');
-            } else {
-                _context_menu.add_context('map_general');
-                _context_menu.add_context_item("add new desk location", on_context_click, 'map_general');
-                _context_menu.add_context_item("add new PC location", on_context_click, 'map_general');
-                _context_menu.set_context('map_general');
-            }
 
             var mouse_point:Point = new Point(mouseX - _image_container.x, mouseY - _image_container.y);
             _context_menu.move(mouse_point.x, mouse_point.y);
             _context_menu.show();
             add_context_menu_listeners();
-            remove_image_container_listeners();
+            remove_image_container_mouse_listeners();
 
             DebugDaemon.write_log("point pinged @ %s, %s", DebugDaemon.DEBUG, mouseX - _image_container.x, mouseY - _image_container.y);
         }
 
         private function add_context_menu_listeners():void {
-          _on_context_menu_roll_out ||= new NativeSignal(_context_menu, MouseEvent.ROLL_OUT, MouseEvent);
-          _on_context_menu_release_outside ||= new NativeSignal(_context_menu, MouseEvent.RELEASE_OUTSIDE, MouseEvent);
-          _on_context_menu_defocus ||= new NativeSignal(stage, MouseEvent.CLICK, MouseEvent);
+            _on_context_menu_roll_out ||= new NativeSignal(_context_menu, MouseEvent.ROLL_OUT, MouseEvent);
+            _on_context_menu_release_outside ||= new NativeSignal(_context_menu, MouseEvent.RELEASE_OUTSIDE, MouseEvent);
+            _on_context_menu_defocus ||= new NativeSignal(stage, MouseEvent.CLICK, MouseEvent);
 
-          _on_context_menu_roll_out.add(on_context_menu_roll_out);
-          _on_context_menu_release_outside.add(on_context_menu_release_outside);
-          _on_context_menu_defocus.add(on_context_menu_defocus);
+            _on_context_menu_roll_out.add(on_context_menu_roll_out);
+            _on_context_menu_release_outside.add(on_context_menu_release_outside);
+            _on_context_menu_defocus.add(on_context_menu_defocus);
         }
 
         private function remove_context_menu_listeners():void {
-          _on_context_menu_roll_out.remove(on_context_menu_roll_out);
-          _on_context_menu_release_outside.remove(on_context_menu_release_outside);
-          _on_context_menu_defocus.remove(on_context_menu_defocus);
+            _on_context_menu_roll_out.remove(on_context_menu_roll_out);
+            _on_context_menu_release_outside.remove(on_context_menu_release_outside);
+            _on_context_menu_defocus.remove(on_context_menu_defocus);
         }
 
         private function on_context_menu_roll_out(e:MouseEvent):void {
-          _context_menu.clear_selection();
+            _context_menu.clear_selection();
         }
 
         private function on_context_menu_release_outside(e:MouseEvent):void {
-          remove_context_menu_listeners();
-          _context_menu.hide(true);
-          add_image_container_listeners();
+            remove_context_menu_listeners();
+            _context_menu.hide(true);
+            add_image_container_listeners();
         }
 
         private function on_context_menu_defocus(e:MouseEvent):void {
-          if (e.currentTarget !== _context_menu) {
-            _on_context_menu_defocus.remove(on_context_menu_defocus);
-            remove_context_menu_listeners();
-            _context_menu.hide(true)
-            add_image_container_listeners();
-          }
+            if (e.currentTarget !== _context_menu) {
+                _on_context_menu_defocus.remove(on_context_menu_defocus);
+                remove_context_menu_listeners();
+                _context_menu.hide(true)
+                add_image_container_listeners();
+            }
         }
 
         private function on_context_click(e:MouseEvent):void {
             switch ((e.currentTarget as ListItem).label) {
-                case "add location item":
-                    trace("liftoff");
+                case Contexts.CONTEXT_MAP_GENERAL_ADD_ITEM:
+                    trace("item creation");
+                    break;
+                case Contexts.CONTEXT_MAP_GENERAL_CREATE_PATH:
+                    trace("path creation");
                     break;
                 default:
                     break;
