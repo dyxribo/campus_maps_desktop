@@ -68,11 +68,7 @@ package structs {
             _buildings = new Map(String, Building);
             _dispatcher = new Signal(Building);
             _image_loader = new XLoader();
-
-
-            // TODO| load default map graphic from savedata, otherwise load last
-            // TODO| visited location via set_location.
-            display_map("32OS_11F");
+            _current_location = new Building();
         }
 
         /**
@@ -81,79 +77,53 @@ package structs {
          * @returns
          */
         public function set_location(location_link:String):void {
-            if (this._current_location.id == location_link) {
+            var resolvable:int = _current_location.navigate_to(location_link);
+
+            if (resolvable != Building.NO_MATCH) {
+                display_map(location_link);
+            } else {
+                DebugDaemon.write_log("cannot display map: the location link is not resolvable. got: %s", DebugDaemon.ERROR_GENERIC, location_link);
                 return;
             }
 
-            var matches:Building = this.resolve_link(location_link);
-            var building_id:String = matches.id;
-            var floor_id:String = matches.current_floor_id;
-            var subsection_id:String = matches.current_subsection_id;
-            var item_id:String = matches.current_item_id;
-
-            if (this._buildings.has(building_id)) {
-                this._current_location = this._buildings.pull(building_id) as Building;
-
-                if (this.floor_in_building(floor_id)) {
-                    this._current_location.current_floor_id = floor_id;
-
-                    if (this.subsection_in_floor(subsection_id)) {
-                        this._current_location.current_subsection_id = subsection_id;
-
-                        if (this.item_in_subsection(item_id)) {
-                            this._current_location.current_item_id = item_id;
-                        } else {
-                            this._current_location.current_item_id = '';
-                        }
-                    } else {
-                        this._current_location.current_subsection_id = '';
-                    }
-                } else {
-                    this._current_location.current_floor_id = '';
-                }
-                this.dispatch(this._current_location);
-            }
         }
 
         /**
          * /// TODO: documentation
          * @param query
          */
-        public function find_location(query:String):Vector.<Building> {
+        public function search(query:String):Vector.<Building> {
+            var resolvable:int = _current_location.navigate_to(query);
             var location_results:Vector.<Building> = new Vector.<Building>();
 
-            // look for exact match first
-            var matches:Building = this.resolve_link(query);
-            var building:Building;
+            if (resolvable != Building.NO_MATCH) {
+                switch (resolvable) {
+                    case Building.BUILDING_MATCH:
 
-            if (this.building_exists(matches.id)) {
-                building = this._buildings.pull(matches.id) as Building;
-
-                if (this.floor_in_building(matches.current_floor_id)) {
-                    building.current_floor_id = matches.current_floor_id;
-
-                    if (this.subsection_in_floor(matches.current_subsection_id)) {
-                        building.current_subsection_id = matches.current_subsection_id;
-
-                        if (this.item_in_subsection(matches.current_item_id)) {
-                            building.current_item_id = matches.current_item_id;
-                        }
-                    }
-                }
-                location_results.push(building);
-            }
-            // then look for approximate matches
-            var approximate_matches:Array = findCloseTerms(query, Location.directory);
-
-            if (approximate_matches.length === 1 && (approximate_matches[0] as String) === building.id) {
-                // discard the matches if the only one is the exact match we should have found already
-                approximate_matches = [];
-            } else {
-                // otherwise push all the matches to location_results
-                for (var i:uint = 0; i < approximate_matches.length; i++) {
-                    location_results.push(approximate_matches[i]);
+                        break;
+                    case Building.FLOOR_MATCH:
+                        break;
+                    case Building.SUBSECTION_MATCH:
+                        break;
+                    case Building.EXACT_MATCH:
+                        break;
                 }
             }
+
+            /*
+               // then look for approximate matches
+               var approximate_matches:Array = findCloseTerms(query);
+
+               if (approximate_matches.length === 1 && (approximate_matches[0] as String) === building.id) {
+               // discard the matches if the only one is the exact match we should have found already
+               approximate_matches = [];
+               } else {
+               // otherwise push all the matches to location_results
+               for (var i:uint = 0; i < approximate_matches.length; i++) {
+               location_results.push(approximate_matches[i]);
+               }
+               }
+             */
             return location_results;
         }
 
@@ -181,9 +151,9 @@ package structs {
             var json:Object = {last_location:
                     {
                         "building": this._current_location.id,
-                        "floor": this._current_location.current_floor_id,
-                        "subsection": this._current_location.current_subsection_id,
-                        "item": this._current_location.current_item_id,
+                        "floor": this._current_location.floor_id,
+                        "subsection": this._current_location.subsection_id,
+                        "item": this._current_location.item_id,
                         "panned": false,
                         "pan_position": {
                             "x": 0,
@@ -221,35 +191,17 @@ package structs {
         }
 
         private function display_map(floor_link:String):void {
-            // maps should be all floors obviously,
-            // so the floor id is what 'map_id' should be referencing.
-            var target_location:Building = resolve_link(floor_link);
 
-            if (!target_location || !target_location.id || !target_location.current_floor_id) {
-                DebugDaemon.write_log("cannot display map: the location link is malformed. got: %s", DebugDaemon.ERROR_GENERIC, floor_link);
-                return;
-            }
-
-            // TODO: uncomment, this is just removed until i can create the mapdata
-            /*
-               if (!building_exists(target_location.id) ||
-               !(_buildings.pull(target_location.id) as Building)
-               .has_floor(target_location.current_floor_id)) {
-               DebugDaemon.write_log(
-               "cannot display map: the location referenced in the link does not " +
-               "exist. got: %s", DebugDaemon.ERROR_GENERIC, floor_link);
-               }*/
-
-            var floor_map_png:File = _ASSET_IMAGE_FOLDER.resolvePath(target_location.id).resolvePath(target_location.current_floor_id + ".png");
+            var floor_map_png:File = _ASSET_IMAGE_FOLDER.resolvePath(_current_location.id).resolvePath(_current_location.floor_id + ".png");
 
             if (!floor_map_png.exists) {
                 DebugDaemon.write_log("cannot display map: the floor map image does not exist: %s.\n" + "the file may be corrupted; try reinstalling.", DebugDaemon.ERROR_IO, floor_map_png.nativePath);
-
                 return;
+
             } else {
 
                 if (_current_map_image && _current_map_image.parent) {
-                    removeChild(_current_map_image);
+                    _image_container.removeChild(_current_map_image);
                 }
 
                 // TODO: load png data into _current_map_image and display centered
@@ -259,11 +211,12 @@ package structs {
                 _image_loader.ON_COMPLETE_GRAPHIC.add(on_image);
                 _image_loader.queue_files(img_req);
             }
+
         }
 
-        private function findCloseTerms(query:String, terms:Array, maxDistance:int = 2):Array {
+        private function findCloseTerms(query:String, maxDistance:int = 2):Array {
             var closeTerms:Array = [];
-            for each (var term:String in terms) {
+            for each (var term:String in["terms"]) {
                 if (StringUtil.levenshtein(query, term) <= maxDistance) {
                     closeTerms.push(term);
                 }
@@ -277,6 +230,8 @@ package structs {
          * @returns
          */
         private function resolve_link(location_link:String):Building {
+            var resolvable:Boolean = _current_location.navigate_to(location_link);
+
             var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
 
             if (link_elements.length) {
@@ -284,10 +239,12 @@ package structs {
                 var floor_id:String = link_elements[2] ? link_elements[2] : '';
                 var subsection_id:String = link_elements[3] ? link_elements[3] : '';
                 var item_id:String = link_elements[4] ? link_elements[4] : '';
-                var location:Building = new Building(building_id);
-                location.current_floor_id = floor_id;
-                location.current_subsection_id = subsection_id;
-                location.current_item_id = item_id;
+
+                var location:Building = new Building();
+                location.id = building_id;
+                location.floor_id = floor_id;
+                location.subsection_id = subsection_id;
+                location.item_id = item_id;
                 return location;
             }
 
@@ -321,8 +278,8 @@ package structs {
          * @returns
          */
         private function subsection_in_floor(subsection_id:String):Boolean {
-            if (this.floor_in_building(this._current_location.current_floor_id)) {
-                if (this._current_location.get_floor(this._current_location.current_floor_id).has_subsection(subsection_id)) {
+            if (this.floor_in_building(this._current_location.floor_id)) {
+                if (this._current_location.get_floor(this._current_location.floor_id).has_subsection(subsection_id)) {
                     return true;
                 }
             }
@@ -333,8 +290,8 @@ package structs {
          *
          */
         private function item_in_subsection(item_id:String):Boolean {
-            if (this.subsection_in_floor(this._current_location.current_subsection_id)) {
-                if (this._current_location.get_floor(this._current_location.current_floor_id).get_subsection(this.current_location.current_subsection_id).has_item(item_id)) {
+            if (this.subsection_in_floor(this._current_location.subsection_id)) {
+                if (this._current_location.get_floor(this._current_location.floor_id).get_subsection(this.current_location.subsection_id).has_item(item_id)) {
                     return true;
                 }
             }
@@ -356,7 +313,7 @@ package structs {
          */
         private function get_subsection(subsection_id:String):Subsection {
             if (this.subsection_in_floor(subsection_id)) {
-                return this._current_location.get_floor(this.current_location.current_floor_id).get_subsection(subsection_id);
+                return this._current_location.get_floor(this.current_location.floor_id).get_subsection(subsection_id);
             }
             return null;
         }
@@ -366,7 +323,7 @@ package structs {
          */
         private function get_item(item_id:String):MappableItem {
             if (this.item_in_subsection(item_id)) {
-                return this._current_location.get_floor(this.current_location.current_floor_id).get_subsection(this.current_location.current_subsection_id).get_item(item_id);
+                return this._current_location.get_floor(this.current_location.floor_id).get_subsection(this.current_location.subsection_id).get_item(item_id);
             }
             return null;
         }
@@ -485,12 +442,13 @@ package structs {
             // TODO: display context menu with easy actions
 
             var mouse_point:Point = new Point(mouseX - _image_container.x, mouseY - _image_container.y);
+
             _context_menu.move(mouse_point.x, mouse_point.y);
             _context_menu.show();
             add_context_menu_listeners();
             remove_image_container_mouse_listeners();
 
-            DebugDaemon.write_log("point pinged @ %s, %s", DebugDaemon.DEBUG, mouseX - _image_container.x, mouseY - _image_container.y);
+            DebugDaemon.write_log("point pinged @ %s, %s", DebugDaemon.DEBUG, mouse_point.x, mouse_point.y);
         }
 
         private function add_context_menu_listeners():void {
@@ -529,9 +487,13 @@ package structs {
         }
 
         private function on_context_click(e:MouseEvent):void {
-            switch ((e.currentTarget as ListItem).label) {
+            var list_item:ListItem = (e.currentTarget as ListItem);
+            switch (list_item.label) {
                 case Contexts.CONTEXT_MAP_GENERAL_ADD_ITEM:
                     trace("item creation");
+                    var location:MappableItem = new MappableItem();
+                    location.position.x = _context_menu.x;
+                    location.position.y = _context_menu.y;
                     break;
                 case Contexts.CONTEXT_MAP_GENERAL_CREATE_PATH:
                     trace("path creation");

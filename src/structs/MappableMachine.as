@@ -9,16 +9,15 @@ package structs {
     private var _ip_address:String = '';
     private var _connected_jack_id:String = '';
 
-    public function MappableMachine(id:String, type:uint, position:Point) {
-      super(id, type, position);
+    public function MappableMachine() {
+      super();
     }
 
     static public function read_json(json:Object):MappableMachine {
-      var item:MappableMachine = new MappableMachine(
-          json.id,
-          json.type,
-          Point.read_json(json.location)
-        );
+      var item:MappableMachine = new MappableMachine();
+      item.id = json.id;
+      item.type = json.type;
+      item.position = Point.read_json(json.position);
       item.assignee = json.assignee;
       item.model_name = json.model_name;
       item.mac_address = json.mac_address;
