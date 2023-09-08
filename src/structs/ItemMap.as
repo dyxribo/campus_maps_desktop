@@ -50,6 +50,8 @@ package structs {
         private var _current_map_image:Bitmap;
         private var _image_mask:Sprite;
         private var _image_container:Sprite;
+        private var _clusters:Vector.<Point>;
+        private var _currently_expanded_cluster:Vector.<Point>;
         private var _image_size:Point;
         private var _pan_position:Point;
         private var _context_menu:ContextMenu;
@@ -76,6 +78,8 @@ package structs {
             _buildings = new Map(String, Building);
             _image_loader = new XLoader();
             _current_location = new Building();
+            _clusters = new Vector.<Point>();
+            _currently_expanded_cluster = new Vector.<Point>();
         }
 
         /**
@@ -336,13 +340,14 @@ package structs {
             if (json.panned) {
                 this._pan_position = Point.read_json(json.pan_position);
                 if (!_current_map_image) {
-                   _image_loader.ON_COMPLETE_GRAPHIC.add(read_json_pan);
+                    _image_loader.ON_COMPLETE_GRAPHIC.add(read_json_pan);
                 }
             }
         }
 
         private function read_json_pan(b:Bitmap):void {
-          pan();
+            _image_loader.ON_COMPLETE_GRAPHIC.remove(read_json_pan);
+            pan();
         }
 
         private function display_map(floor_link:String):void {
@@ -404,6 +409,54 @@ package structs {
             }
 
             return null;
+        }
+
+        public function add_cluster(cluster:Vector.<Point>):void {
+            _clusters.push(cluster);
+
+            // Add a single point to represent the cluster on the map.
+            // Using the first point in the cluster for simplicity.
+            var representative_point:Point = calculate_cluster_center(cluster);
+            add_point_to_map(representative_point, function():void {
+                expand_cluster(cluster);
+            });
+        }
+
+        public function expand_cluster(cluster:Vector.<Point>):void {
+            if (_currently_expanded_cluster) {
+                // Collapse the currently expanded cluster first
+                remove_points_from_map(_currently_expanded_cluster);
+            }
+
+            // Add all points in the clicked cluster
+            for each (var point:Point in cluster) {
+                add_point_to_map(point);
+            }
+
+            _currently_expanded_cluster = cluster;
+        }
+
+        private function calculate_cluster_center(cluster:Vector.<Point>):Point {
+            var total_x:Number = 0;
+            var total_y:Number = 0;
+
+            for each (var point:Point in cluster) {
+                total_x += point.x;
+                total_y += point.y;
+            }
+
+            var center_x:Number = total_x / cluster.length;
+            var center_y:Number = total_y / cluster.length;
+
+            return new Point(center_x, center_y);
+        }
+
+        public function add_point_to_map(point:Point, onClick:Function = null):void {
+            // Add a point to your map, attach onClick if provided
+        }
+
+        public function remove_points_from_map(points:Vector.<Point>):void {
+            // Remove points from your map
         }
 
         /**

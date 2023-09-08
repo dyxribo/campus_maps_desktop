@@ -4,8 +4,9 @@ package structs {
 
     import thirdparty.org.osflash.signals.Signal;
     import net.blaxstar.starlib.utils.StringUtil;
+    import flash.display.Sprite;
 
-    public class Location extends Signal {
+    public class Location extends Sprite {
 
         static public var directory:Array;
         static public var temp_assignments:uint = 0;
