@@ -25,6 +25,7 @@ package structs {
         public function add_floor(floor:Floor):Floor {
             if (!this._floors.has(floor.id)) {
                 this._floors.put(floor.id, floor);
+                floor.prefix = building_id;
             } else {
                 DebugDaemon.write_log("error adding floor to building object: the specified floor already exists.", DebugDaemon.WARN);
             }
@@ -52,43 +53,6 @@ package structs {
 
         public function has_floor(id:String):Boolean {
             return this._floors.has(id);
-        }
-
-        public function navigate_to(location_link:String):int {
-            var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
-
-            if (link_elements.length) {
-                var building_id:String = link_elements[1] ? link_elements[1] : '';
-                var floor_id:String = link_elements[2] ? link_elements[2] : '';
-                var subsection_id:String = link_elements[3] ? link_elements[3] : '';
-                var item_id:String = link_elements[4] ? link_elements[4] : '';
-
-                if (building_id != this._building_id) {
-                    // throw error, building does not exist
-                    return NO_MATCH;
-                } else {
-                    if (floor_id && has_floor(floor_id)) {
-                        var fl:Floor = get_floor(floor_id);
-                        this.floor_id = floor_id;
-
-                        if (subsection_id && fl.has_subsection(subsection_id)) {
-
-                            var ss:Subsection = fl.get_subsection(subsection_id);
-                            this.subsection_id = subsection_id;
-
-                            if (item_id && ss.has_item(item_id)) {
-                                this.item_id = item_id;
-                                return EXACT_MATCH;
-                            } else {
-                                return SUBSECTION_MATCH;
-                            }
-                        } else {
-                            return FLOOR_MATCH;
-                        }
-                    }
-                }
-            }
-            return BUILDING_MATCH;
         }
 
         public function get floors():Map {
@@ -120,12 +84,11 @@ package structs {
                 json.floors[key] = floors_dict[key].write_json();
             }
 
-            DebugDaemon.write_log("building floors: %s\n\nall floors: %s", DebugDaemon.DEBUG, JSON.stringify(json.floors), JSON.stringify(this._floors));
             return json;
         }
 
         override public function set id(value:String):void {
-            _building_id = super.id = value;
+            _building_id = this._id = value;
         }
 
         public function get building_id():String {
@@ -137,7 +100,7 @@ package structs {
         }
 
         override public function get link():String {
-            return _building_id + "_" + super.link;
+            return _building_id;
         }
 
     }

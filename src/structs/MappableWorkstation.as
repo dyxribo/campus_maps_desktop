@@ -4,19 +4,12 @@ package structs {
     import structs.MappableMachine;
 
     public class MappableWorkstation extends MappableMachine {
-        static public var workstation_lookup:Map;
 
         private var _hostname:String = '';
 
         public function MappableWorkstation() {
+            this.type = MappableItem.ITEM_WORKSTATION;
             super();
-        }
-
-        static public function add_to_directory(val:MappableWorkstation):void {
-            if (!MappableWorkstation.workstation_lookup) {
-                MappableWorkstation.workstation_lookup = new Map(String, MappableWorkstation);
-            }
-            MappableWorkstation.workstation_lookup.put(val.id, val);
         }
 
         static public function read_json(json:Object):MappableWorkstation {

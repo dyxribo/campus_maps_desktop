@@ -10,25 +10,13 @@ package structs {
         static private var _jacks:Map;
 
         public function WallPlate() {
-            super();
+
             type = MappableItem.ITEM_WALL_PLATE;
             _plates = new Map(String, WallPlate);
             _jacks = new Map(String, WallJack);
-        }
 
-        static public function add_to_directory(val:WallPlate):void {
-            if (!WallPlate._plate_lookup.has(val.id)) {
-                WallPlate._plate_lookup = new Map(String, WallPlate);
-            }
-            WallPlate._plate_lookup.put(val.id, val);
-        }
-
-        static public function get_plate(plate_id:String):WallPlate {
-            if (!WallPlate._plate_lookup || !WallPlate._plate_lookup.has(plate_id))
-                return undefined;
-            else {
-                return WallPlate._plate_lookup.pull(plate_id) as WallPlate;
-            }
+            super();
+            add_to_directory(this);
         }
 
         public function add_plate(plate:WallPlate):Boolean {

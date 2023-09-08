@@ -20,7 +20,6 @@ package structs {
     import net.blaxstar.starlib.utils.StringUtil;
 
     import thirdparty.com.greensock.TweenLite;
-    import thirdparty.org.osflash.signals.ISlot;
     import thirdparty.org.osflash.signals.Signal;
     import thirdparty.org.osflash.signals.natives.NativeSignal;
 
@@ -28,6 +27,16 @@ package structs {
      * /// TODO: documentation
      */
     public class ItemMap extends Sprite {
+        public static const SEARCH_DESK:uint = 0;
+        public static const SEARCH_USER:uint = 1;
+        public static const SEARCH_WORKSTATION:uint = 2;
+        public static const SEARCH_PRINTER:uint = 3;
+        public static const SEARCH_BUILDING:uint = 4;
+        public static const SEARCH_FLOOR:uint = 5;
+        public static const SEARCH_SUBSECTION:uint = 6;
+        public static const SEARCH_GENERIC_LOCATION:uint = 7;
+        public static const SEARCH_ALL:uint = 8;
+
         private const _LOCATION_LINK_PATTERN:RegExp = /^([a-zA-Z0-9]+)(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?$/;
 
         private const _ASSET_IMAGE_FOLDER:File = File.applicationDirectory.resolvePath("assets").resolvePath("img");
@@ -44,7 +53,6 @@ package structs {
         private var _image_size:Point;
         private var _pan_position:Point;
         private var _context_menu:ContextMenu;
-        private var _dispatcher:Signal;
 
         private var _on_context_menu_roll_out:NativeSignal;
         private var _on_context_menu_release_outside:NativeSignal;
@@ -66,7 +74,6 @@ package structs {
 
             super();
             _buildings = new Map(String, Building);
-            _dispatcher = new Signal(Building);
             _image_loader = new XLoader();
             _current_location = new Building();
         }
@@ -77,9 +84,9 @@ package structs {
          * @returns
          */
         public function set_location(location_link:String):void {
-            var resolvable:int = _current_location.navigate_to(location_link);
+            var resolvable:Boolean = navigate_to(location_link);
 
-            if (resolvable != Building.NO_MATCH) {
+            if (resolvable) {
                 display_map(location_link);
             } else {
                 DebugDaemon.write_log("cannot display map: the location link is not resolvable. got: %s", DebugDaemon.ERROR_GENERIC, location_link);
@@ -89,23 +96,76 @@ package structs {
         }
 
         /**
-         * /// TODO: documentation
-         * @param query
+         * Searches the entire map's directory for a location using `query`.
+         * @param query The search query.
+         * @return `MappableItem vector` Search results as a vector of `MappableItem`s.
          */
-        public function search(query:String):Vector.<Building> {
-            var resolvable:int = _current_location.navigate_to(query);
-            var location_results:Vector.<Building> = new Vector.<Building>();
+        public function search(query:String, search_by:uint = SEARCH_ALL):Vector.<MappableItem> {
+            var results:Vector.<MappableItem> = new Vector.<MappableItem>();
 
-            if (resolvable != Building.NO_MATCH) {
-                switch (resolvable) {
-                    case Building.BUILDING_MATCH:
+            // if the query is a direct link, then return the exact match.
+            // otherwise, search everything and return what's found.
+            var item_reference:MappableItem = test_path(query);
+            if (item_reference) {
+                // direct link
+                results.push(item_reference);
+            } else {
+                // something else, respect search_by
+                switch (search_by) {
+                    case SEARCH_ALL:
+                    default:
+                        // query is not a direct link, so search by id
+                        /**
+                         * need to search:
+                         * desk locations
+                         * users
+                         * workstations
+                         * printers
+                         * buildings
+                         * floor id only
+                         * subsection id only
+                         * generic item id only
+                         * */
 
+                        var desk:MappableDesk = search_desks(query);
+                        var user:MappableUser = search_users(query);
+                        var workstation:MappableWorkstation;
+                        var printer:MappablePrinter;
+                        var bldg:Building;
+                        var flr:Floor;
+                        var sbsc:Subsection;
+                        var gen_itm:MappableItem;
+
+                        if (desk) {
+                            results.push(desk)
+                        }
+                        if (user) {
+                            results.push(user)
+                        }
                         break;
-                    case Building.FLOOR_MATCH:
+                    case SEARCH_DESK:
+                        desk = search_desks(query);
+                        if (desk) {
+                            results.push(desk)
+                        }
                         break;
-                    case Building.SUBSECTION_MATCH:
+                    case SEARCH_USER:
+                        user = search_users(query);
+                        if (user) {
+                            results.push(user);
+                        }
                         break;
-                    case Building.EXACT_MATCH:
+                    case SEARCH_WORKSTATION:
+                        break;
+                    case SEARCH_PRINTER:
+                        break;
+                    case SEARCH_BUILDING:
+                        break;
+                    case SEARCH_FLOOR:
+                        break;
+                    case SEARCH_SUBSECTION:
+                        break;
+                    case SEARCH_GENERIC_LOCATION:
                         break;
                 }
             }
@@ -124,23 +184,112 @@ package structs {
                }
                }
              */
-            return location_results;
+            return results;
         }
 
-        public function dispatch(... value_objects):void {
-            _dispatcher.dispatch(value_objects);
+        /**
+         * Navigates the current location to the specified link.
+         * @param location_link the location link to navigate to.
+         * @return `Boolean`
+         */
+        public function navigate_to(location_link:String):Boolean {
+            var navigable:Boolean = test_path(location_link);
+
+            if (navigable) {
+                // full path exists, no need for path checking methods
+                var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
+
+                var building_id:String = link_elements[1];
+                var floor_id:String = link_elements[2];
+                var subsection_id:String = link_elements[3];
+                var item_id:String = link_elements[4];
+
+                _current_location.id = building_id;
+
+                if (floor_id) {
+                    var fl:Floor = get_floor(floor_id);
+                    _current_location.floor_id = floor_id;
+                }
+
+                if (subsection_id) {
+                    var ss:Subsection = fl.get_subsection(subsection_id);
+                    _current_location.subsection_id = subsection_id;
+                }
+
+                if (item_id) {
+                    _current_location.item_id = item_id;
+                }
+
+                return true;
+            }
+            // does not exist, throw error
+            return false;
         }
 
-        public function add(listener:Function):ISlot {
-            return _dispatcher.add(listener);
+        /**
+         * Tests a direct location link for validity.
+         * @param location_link the location link in the format `BLDG_FL_SS_ITM`.
+         * @return `MappableItem | null`
+         */
+        public function test_path(location_link:String):MappableItem {
+            var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
+
+            if (link_elements.length) {
+                var building_id:String = link_elements[1] ? link_elements[1] : '';
+                var floor_id:String = link_elements[2] ? link_elements[2] : '';
+                var subsection_id:String = link_elements[3] ? link_elements[3] : '';
+                var item_id:String = link_elements[4] ? link_elements[4] : '';
+
+                if (!_buildings.has(building_id)) {
+                    return null;
+                } else {
+                    var bldg:Building = _buildings.pull(building_id) as Building;
+                    if (floor_id && bldg.has_floor(floor_id)) {
+                        var fl:Floor = bldg.get_floor(floor_id);
+
+                        if (subsection_id && fl.has_subsection(subsection_id)) {
+
+                            var ss:Subsection = fl.get_subsection(subsection_id);
+
+                            if (item_id && ss.has_item(item_id)) {
+                                return ss.get_item(item_id);
+                            } else {
+                                return ss;
+                            }
+                        } else {
+                            return fl;
+                        }
+                    } else {
+                        return bldg;
+                    }
+                }
+            }
+            return null;
         }
 
-        public function remove(listener:Function):ISlot {
-            return _dispatcher.remove(listener);
+        /**
+         *
+         * @param username the username to search for.
+         * @return `MappableUser | null`
+         */
+        public function search_users(username:String):MappableUser {
+            if (!MappableItem.user_lookup) {
+                return null;
+            }
+            if (MappableItem.user_lookup.has(username)) {
+                return (MappableItem.user_lookup.pull(username) as MappableUser);
+            }
+            return null;
         }
 
-        public function removeAll():void {
-            _dispatcher.removeAll();
+        public function search_desks(desk_id:String):MappableDesk {
+            if (!MappableItem.desk_lookup) {
+                return null;
+            }
+            if (MappableItem.desk_lookup.has(desk_id)) {
+                return (MappableItem.desk_lookup.pull(desk_id) as MappableDesk);
+            }
+            return null;
         }
 
         /**
@@ -186,8 +335,14 @@ package structs {
             }
             if (json.panned) {
                 this._pan_position = Point.read_json(json.pan_position);
-                pan();
+                if (!_current_map_image) {
+                   _image_loader.ON_COMPLETE_GRAPHIC.add(read_json_pan);
+                }
             }
+        }
+
+        private function read_json_pan(b:Bitmap):void {
+          pan();
         }
 
         private function display_map(floor_link:String):void {
@@ -230,7 +385,7 @@ package structs {
          * @returns
          */
         private function resolve_link(location_link:String):Building {
-            var resolvable:Boolean = _current_location.navigate_to(location_link);
+            var resolvable:Boolean = navigate_to(location_link);
 
             var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
 
@@ -335,8 +490,12 @@ package structs {
             if (_current_location.position.equals(_pan_position)) {
                 return false;
             }
-            TweenLite.to(_current_map_image, 0.3, {x: _pan_position.x});
-            _current_map_image.x = -_pan_position.x;
+
+            var center_x:Number = stage.stageWidth / 2;
+            var center_y:Number = stage.stageHeight / 2;
+
+            TweenLite.to(_image_container, 0.3, {x: center_x - _pan_position.x, y: center_y - _pan_position.y});
+
             return true;
         }
 

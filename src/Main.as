@@ -24,6 +24,8 @@ package {
     import config.SaveData;
     import flash.display.StageScaleMode;
     import flash.display.StageAlign;
+    import structs.MappableUser;
+    import geom.Point;
 
     /**
      * TODO: documentation
@@ -102,28 +104,46 @@ package {
         }
 
         private function init_campus_data():void {
+            var json:Object = {
+              panned: true,
+              pan_position: {
+                x: 1058,
+                y: 127
+              },
+              buildings: {
 
-
-            var _current_location:Building = new Building();
+              }
+            };
+            var current_location:Building = new Building();
             var fl:Floor = new Floor();
             var ss_w:Subsection = new Subsection();
-            var item:MappableDesk = new MappableDesk();
+            var desk:MappableDesk = new MappableDesk();
+            var user:MappableUser = new MappableUser();
+            user.email = "dyxribo@google.com";
+            user.id = "dyxribo";
+            user.phone = "3478336485";
+            user.work_hours = { start_time: 10, end_time: 6, time_zone: "est"};
+            user.position = new Point(1058, 127);
             fl.id = "11F";
             ss_w.id = "WEST";
-            item.id = "11W020";
-
-            _current_location.building_id = "32OS";
-            _current_location.add_floor(fl);
+            desk.id = "11W020";
+            desk.assignee = "dyxribo";
+            current_location.id = "32OS";
+            current_location.add_floor(fl);
             fl.add_subsection(ss_w);
-            ss_w.add_item(item);
-            _current_location.navigate_to("32OS_11F_WEST_11W020");
+            ss_w.add_item(user);
+            ss_w.add_item(desk);
+            json.buildings[current_location.id] = current_location.write_json();
+            _item_map.read_json(json);
+            _item_map.set_location(fl.link);
+            trace(_item_map.search("11W020")[0].item_id);
 
             // TODO| load default map graphic from savedata, otherwise load last
             // TODO| visited location via set_location.
 
 
 
-            DebugDaemon.write_log(_current_location.link);
+            DebugDaemon.write_log(desk.link);
         }
 
         private function on_login_result(result:String):void {

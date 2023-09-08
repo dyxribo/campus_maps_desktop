@@ -10,7 +10,7 @@ package structs {
         static public var directory:Array;
         static public var temp_assignments:uint = 0;
 
-        private var _id:String;
+        protected var _id:String;
         private var _position:Point;
 
         //public var current_subsection_id:String;
@@ -18,8 +18,8 @@ package structs {
 
         public function Location() {
             super();
-            this.id = 'new_location' + Location.temp_assignments++;
-            this.position = new Point(0, 0);
+            this._id ||= 'new_location' + Location.temp_assignments++;
+            this.position ||= new Point(0, 0);
             //this.current_floor_id = '';
             //this.current_subsection_id = '';
             //this.current_item_id = '';

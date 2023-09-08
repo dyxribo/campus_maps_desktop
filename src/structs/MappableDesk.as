@@ -4,7 +4,6 @@ package structs {
     import structs.AssignableItem;
 
     public class MappableDesk extends AssignableItem {
-        static public var desk_lookup:Map;
 
         /**
          * TODO: there's not much justifying this class besides the fact that desk
@@ -13,24 +12,23 @@ package structs {
          * boolean value to check if a desk is an electronic standing desk?
          */
         public function MappableDesk() {
+            this.type = MappableItem.ITEM_DESK;
             super();
-            desk_lookup = new Map(String, MappableDesk);
-        }
-
-        static public function add_to_directory(val:MappableDesk):void {
-            if (!MappableDesk.desk_lookup) {
-                MappableDesk.desk_lookup = new Map(String, MappableDesk);
-            }
-            MappableDesk.desk_lookup.put(val.id, val);
         }
 
         static public function read_json(json:Object):MappableDesk {
             var item:MappableDesk = new MappableDesk();
             item.id = json.id;
-            item.position = Point.read_json(json.location);
+            item.position = Point.read_json(json.position);
             item.assignee = json.assignee;
 
             return item;
+        }
+
+        override public function set id(value:String):void {
+          desk_lookup.toss(this._id);
+          item_id = this._id = value;
+          desk_lookup.put(this.id, this);
         }
     }
 

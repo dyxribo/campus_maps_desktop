@@ -30,6 +30,7 @@ package structs {
                 return false;
             }
             this._items.put(item.id, item);
+            item.prefix = prefix + "_" + _subsection_id;
             return true;
         }
 
@@ -105,7 +106,7 @@ package structs {
         }
 
         override public function set id(value:String):void {
-            _subsection_id = super.id = value;
+            _subsection_id = this._id = value;
         }
 
         public function get subsection_id():String {
@@ -117,7 +118,7 @@ package structs {
         }
 
         override public function get link():String {
-            return _subsection_id + "_" + super.link;
+            return prefix ? prefix + "_" + _subsection_id : _subsection_id;
         }
     }
 

@@ -26,6 +26,7 @@ package structs {
                 return false;
             } else {
                 this._subsections.put(subsection.id, subsection);
+                subsection.prefix = prefix + "_" + _floor_id;
                 if (this._subsections.size > 1) {
                     this._on_single_vlan = false;
                 }
@@ -92,11 +93,11 @@ package structs {
         }
 
         override public function get link():String {
-            return _floor_id + "_" + super.link;
+            return prefix ? prefix + "_" + _floor_id : _floor_id;
         }
 
         override public function set id(value:String):void {
-            _floor_id = super.id = value;
+            _floor_id = this._id = value;
         }
 
         public function get floor_id():String {

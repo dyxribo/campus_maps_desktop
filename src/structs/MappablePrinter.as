@@ -1,23 +1,14 @@
 package structs {
-    import geom.Point;
-    import structs.MappablePrinter;
     import structs.MappableMachine;
 
     public class MappablePrinter extends MappableMachine {
-        static public var printer_lookup:Map;
 
         private var _using_usb:Boolean;
 
         public function MappablePrinter() {
-            super();
             this._using_usb = false;
-        }
-
-        static public function add_to_directory(val:MappablePrinter):void {
-            if (!MappablePrinter.printer_lookup) {
-                MappablePrinter.printer_lookup = new Map(String, MappablePrinter);
-            }
-            MappablePrinter.printer_lookup.put(val.id, val);
+            this.type = MappableItem.ITEM_PRINTER;
+            super();
         }
 
         static public function read_json(json:Object):MappablePrinter {

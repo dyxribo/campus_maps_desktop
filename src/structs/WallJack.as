@@ -3,28 +3,15 @@ package structs {
     import structs.MappableItem;
 
     public class WallJack extends MappableItem {
-        static private var jack_lookup:Map;
 
         private var _associated_plate:String;
         private var _connected_item_id:String = '';
 
         public function WallJack() {
-
-            super();
             this._connected_item_id = '';
-
-            if (!WallJack.jack_lookup) {
-                WallJack.jack_lookup = new Map(String, WallJack);
-            }
-            WallJack.jack_lookup.put(id, this);
-        }
-
-        static public function get_jack(jack_id:String):WallJack {
-            if (!WallJack.jack_lookup || !WallJack.jack_lookup.has(jack_id))
-                return undefined;
-            else {
-                return WallJack.jack_lookup.pull(jack_id) as WallJack;
-            }
+            this.type = MappableItem.ITEM_WALL_JACK;
+            super();
+            add_to_directory(this);
         }
 
         public function set_connection(item:String):Boolean {

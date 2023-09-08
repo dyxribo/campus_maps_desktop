@@ -5,11 +5,12 @@ package structs {
     import structs.MappableItem;
 
     public class MappableUser extends MappableItem {
-        static public var user_lookup:Map;
         private var _username:String;
         private var _email:String;
         private var _phone:String;
-        // start_time: uint, end_time: uint, time_zone: String
+        /**
+         * start_time: uint, end_time: uint, time_zone: String
+         * */
         private var _work_hours:Object;
         private var _desks:Vector.<String>;
         private var _assets:Vector.<String>;
@@ -17,9 +18,7 @@ package structs {
         // TODO: user photos?
 
         public function MappableUser() {
-            super();
-            user_lookup = new Map(String, MappableUser);
-
+            this.type = MappableItem.ITEM_USER;
             this._username = '';
             this._email = '';
             this._phone = '';
@@ -27,7 +26,7 @@ package structs {
             this._desks = new Vector.<String>();
             this._assets = new Vector.<String>();
 
-            this.add_to_directory(this);
+            super();
         }
 
         public function add_desk(desk_id:String):Boolean {
@@ -49,13 +48,6 @@ package structs {
                 this._assets.push(item_id);
             }
             return true;
-        }
-
-        static public function add_to_directory(val:MappableUser):void {
-            if (!MappableUser.user_lookup) {
-                MappableUser.user_lookup = new Map(String, MappableUser);
-            }
-            MappableUser.user_lookup.put(val.id, val);
         }
 
         static public function read_json(json:Object):MappableUser {
@@ -90,6 +82,12 @@ package structs {
             return json;
         }
 
+        override public function set id(value:String):void {
+          user_lookup.toss(this._id);
+          item_id = this._id = _username = value;
+          user_lookup.put(this.id, this);
+        }
+
         public function get username():String {
             return this._username;
         }
@@ -114,10 +112,16 @@ package structs {
             this._phone = value;
         }
 
+        /**
+         * start_time: uint, end_time: uint, time_zone: String
+         * */
         public function get work_hours():Object {
             return this._work_hours;
         }
 
+        /**
+         * start_time: uint, end_time: uint, time_zone: String
+         * */
         public function set work_hours(value:Object):void {
             this._work_hours = value;
         }
