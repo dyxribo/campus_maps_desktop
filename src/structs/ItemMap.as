@@ -400,10 +400,10 @@ package structs {
             var clicked_pin:Pin = e.currentTarget as Pin;
             var assoc_item:MappableItem = clicked_pin.linked_item;
 
-            if (_item_detail_dialog.componentContainer.numChildren > 0 && assoc_item.type !== (_item_detail_dialog.componentContainer.getChildAt(0) as BaseDialogView).info_type) {
+            if (_item_detail_dialog.component_container.numChildren > 0 && assoc_item.type !== (_item_detail_dialog.component_container.getChildAt(0) as BaseDialogView).info_type) {
 
-                if (_item_detail_dialog.componentContainer.numChildren) {
-                    _item_detail_dialog.componentContainer.removeChildren();
+                if (_item_detail_dialog.component_container.numChildren) {
+                    _item_detail_dialog.component_container.removeChildren();
                 }
             }
             switch (assoc_item.type) {
@@ -443,7 +443,7 @@ package structs {
              * workstation: hostname
              *
              * * = can wait for implementation
-              */
+             */
             // ! TODO: dialog not appearing, position may be incorrect.
             // ! maybe refactor itemmap?
             _item_detail_dialog.open();
