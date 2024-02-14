@@ -13,15 +13,24 @@ package structs {
 
     import geom.Point;
 
+    import modules.Pin;
+
+    import net.blaxstar.starlib.components.Button;
+    import net.blaxstar.starlib.components.Component;
     import net.blaxstar.starlib.components.ContextMenu;
+    import net.blaxstar.starlib.components.Dialog;
     import net.blaxstar.starlib.components.ListItem;
     import net.blaxstar.starlib.io.URL;
     import net.blaxstar.starlib.io.XLoader;
     import net.blaxstar.starlib.utils.StringUtil;
 
     import thirdparty.com.greensock.TweenLite;
-    import thirdparty.org.osflash.signals.Signal;
     import thirdparty.org.osflash.signals.natives.NativeSignal;
+
+    import views.dialog.DeskDialogView;
+    import debug.printf;
+    import modules.Searchbar;
+    import views.dialog.BaseDialogView;
 
     /**
      * /// TODO: documentation
@@ -50,11 +59,13 @@ package structs {
         private var _current_map_image:Bitmap;
         private var _image_mask:Sprite;
         private var _image_container:Sprite;
+        private var _searchbar:Searchbar;
         private var _clusters:Vector.<Point>;
         private var _currently_expanded_cluster:Vector.<Point>;
         private var _image_size:Point;
         private var _pan_position:Point;
         private var _context_menu:ContextMenu;
+        private var _item_detail_dialog:Dialog;
 
         private var _on_context_menu_roll_out:NativeSignal;
         private var _on_context_menu_release_outside:NativeSignal;
@@ -64,6 +75,7 @@ package structs {
         private var _on_image_container_release_outside:NativeSignal;
         private var _on_image_container_scroll_wheel:NativeSignal;
         private var _on_image_container_right_click:NativeSignal;
+        private var _on_pin_click_signal:NativeSignal;
         private var _on_viewport_resize:NativeSignal;
 
         /**
@@ -75,11 +87,32 @@ package structs {
             // TODO | load on app start.
 
             super();
+            init();
+        }
+
+        private function init():void {
             _buildings = new Map(String, Building);
+            _image_container = new Sprite();
+            _image_mask = new Sprite();
             _image_loader = new XLoader();
+            _searchbar = new Searchbar();
             _current_location = new Building();
-            _clusters = new Vector.<Point>();
-            _currently_expanded_cluster = new Vector.<Point>();
+            _item_detail_dialog = new Dialog();
+            _context_menu = new ContextMenu();
+
+            add_children();
+        }
+
+        private function add_children():void {
+            addChild(_image_container);
+            addChild(_image_mask);
+            addChild(_searchbar);
+            addChild(_item_detail_dialog);
+            removeChild(_item_detail_dialog);
+
+            _searchbar.x = _searchbar.y = 10;
+            _searchbar.height = 40;
+            _item_detail_dialog.addOption("close", _item_detail_dialog.close, Button.DEPRESSED);
         }
 
         /**
@@ -96,7 +129,6 @@ package structs {
                 DebugDaemon.write_log("cannot display map: the location link is not resolvable. got: %s", DebugDaemon.ERROR_GENERIC, location_link);
                 return;
             }
-
         }
 
         /**
@@ -297,8 +329,8 @@ package structs {
         }
 
         /**
-         * /// TODO: documentation
-         * @returns
+         * TODO: documentation
+         * @return all buildings and child objects in json format.
          */
         public function write_json():Object {
             var json:Object = {last_location:
@@ -324,7 +356,7 @@ package structs {
         }
 
         /**
-         * /// TODO: documentation
+         * TODO: documentation
          * @param json
          */
         public function read_json(json:Object):void {
@@ -334,20 +366,87 @@ package structs {
                 var building:Building = Building.read_json(building_raw);
                 _buildings.put(building.id, building);
             }
+
             if (json.last_location) {
                 set_location(json.last_location as String);
             }
+
             if (json.panned) {
                 this._pan_position = Point.read_json(json.pan_position);
                 if (!_current_map_image) {
-                    _image_loader.ON_COMPLETE_GRAPHIC.add(read_json_pan);
+                    _image_loader.ON_COMPLETE_GRAPHIC.add(post_read_json);
                 }
             }
         }
 
-        private function read_json_pan(b:Bitmap):void {
-            _image_loader.ON_COMPLETE_GRAPHIC.remove(read_json_pan);
-            pan();
+        private function post_read_json(b:Bitmap):void {
+            _image_loader.ON_COMPLETE_GRAPHIC.remove(post_read_json);
+
+            auto_pan();
+
+            MappableItem.pin_lookup.forEach(function(current_pin:Pin, index:uint, arr:Vector.<Pin>):void {
+                _image_container.addChild(current_pin);
+                current_pin.buttonMode = true;
+                current_pin.x = current_pin.linked_item.position.x;
+                current_pin.y = current_pin.linked_item.position.y;
+
+                if (!_on_pin_click_signal) {
+                    current_pin.addEventListener(MouseEvent.CLICK, on_pin_click);
+                }
+            });
+        }
+
+        private function on_pin_click(e:MouseEvent):void {
+            var clicked_pin:Pin = e.currentTarget as Pin;
+            var assoc_item:MappableItem = clicked_pin.linked_item;
+
+            if (_item_detail_dialog.componentContainer.numChildren > 0 && assoc_item.type !== (_item_detail_dialog.componentContainer.getChildAt(0) as BaseDialogView).info_type) {
+
+                if (_item_detail_dialog.componentContainer.numChildren) {
+                    _item_detail_dialog.componentContainer.removeChildren();
+                }
+            }
+            switch (assoc_item.type) {
+
+                case MappableItem.ITEM_DESK:
+                    var d:DeskDialogView = new DeskDialogView();
+
+                    d.is_adjustable = (assoc_item as MappableDesk).is_adjustable;
+                    d.set_name_field("NAME: " + assoc_item.id);
+                    d.set_type_field("TYPE: DESK");
+                    d.set_location_field("LOCATION: " + assoc_item.link);
+                    _item_detail_dialog.add_component(d);
+                    _item_detail_dialog.auto_resize = true;
+                    _item_detail_dialog.title = assoc_item.id + " properties";
+                    _item_detail_dialog.message = '';
+                    _item_detail_dialog.move(mouseX - assoc_item.position.x + Component.PADDING, mouseX - assoc_item.position.y + Component.PADDING);
+                    break;
+
+                default:
+                    break;
+            }
+
+            /**
+             * form components needed:
+             *
+             * generic:name of item,type of item,location of item
+             *
+             * variations:
+             * user (only shown via references, not on map): full name,username, email,phone,asset list *,desk list *,is_vip,work hours with timezone
+             *
+             * desk: name,is_adjustable
+             *
+             * all machines: model,mac address,ip address,connected jack id
+             *
+             * printer: using_usb
+             *
+             * workstation: hostname
+             *
+             * * = can wait for implementation
+              */
+            // ! TODO: dialog not appearing, position may be incorrect.
+            // ! maybe refactor itemmap?
+            _item_detail_dialog.open();
         }
 
         private function display_map(floor_link:String):void {
@@ -374,13 +473,20 @@ package structs {
 
         }
 
-        private function findCloseTerms(query:String, maxDistance:int = 2):Array {
+        private function find_close_terms(query:String, maxDistance:int = 2):Array {
             var closeTerms:Array = [];
-            for each (var term:String in["terms"]) {
-                if (StringUtil.levenshtein(query, term) <= maxDistance) {
-                    closeTerms.push(term);
+            for each (var item_id:String in MappableItem.item_lookup) {
+                if (StringUtil.levenshtein(query, item_id) <= maxDistance) {
+                    closeTerms.push(item_id);
                 }
             }
+
+            for each (var desk_id:String in MappableItem.desk_lookup) {
+                if (StringUtil.levenshtein(query, desk_id) <= maxDistance) {
+                    closeTerms.push(desk_id);
+                }
+            }
+
             return closeTerms;
         }
 
@@ -409,54 +515,6 @@ package structs {
             }
 
             return null;
-        }
-
-        public function add_cluster(cluster:Vector.<Point>):void {
-            _clusters.push(cluster);
-
-            // Add a single point to represent the cluster on the map.
-            // Using the first point in the cluster for simplicity.
-            var representative_point:Point = calculate_cluster_center(cluster);
-            add_point_to_map(representative_point, function():void {
-                expand_cluster(cluster);
-            });
-        }
-
-        public function expand_cluster(cluster:Vector.<Point>):void {
-            if (_currently_expanded_cluster) {
-                // Collapse the currently expanded cluster first
-                remove_points_from_map(_currently_expanded_cluster);
-            }
-
-            // Add all points in the clicked cluster
-            for each (var point:Point in cluster) {
-                add_point_to_map(point);
-            }
-
-            _currently_expanded_cluster = cluster;
-        }
-
-        private function calculate_cluster_center(cluster:Vector.<Point>):Point {
-            var total_x:Number = 0;
-            var total_y:Number = 0;
-
-            for each (var point:Point in cluster) {
-                total_x += point.x;
-                total_y += point.y;
-            }
-
-            var center_x:Number = total_x / cluster.length;
-            var center_y:Number = total_y / cluster.length;
-
-            return new Point(center_x, center_y);
-        }
-
-        public function add_point_to_map(point:Point, onClick:Function = null):void {
-            // Add a point to your map, attach onClick if provided
-        }
-
-        public function remove_points_from_map(points:Vector.<Point>):void {
-            // Remove points from your map
         }
 
         /**
@@ -539,7 +597,7 @@ package structs {
         /**
          *
          */
-        private function pan():Boolean {
+        private function auto_pan():Boolean {
             if (_current_location.position.equals(_pan_position)) {
                 return false;
             }
@@ -651,8 +709,8 @@ package structs {
 
         private function on_right_click(e:MouseEvent):void {
             e.preventDefault();
-            // TODO: display context menu with easy actions
 
+            // TODO: display context menu with easy actions
             var mouse_point:Point = new Point(mouseX - _image_container.x, mouseY - _image_container.y);
 
             _context_menu.move(mouse_point.x, mouse_point.y);

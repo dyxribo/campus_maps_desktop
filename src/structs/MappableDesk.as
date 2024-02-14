@@ -5,12 +5,8 @@ package structs {
 
     public class MappableDesk extends AssignableItem {
 
-        /**
-         * TODO: there's not much justifying this class besides the fact that desk
-         * locations are an integral concept for this project. maybe i can find some
-         * relevant data that only desks have that will justify this. maybe store a
-         * boolean value to check if a desk is an electronic standing desk?
-         */
+        private var _is_adjustable:Boolean;
+
         public function MappableDesk() {
             this.type = MappableItem.ITEM_DESK;
             super();
@@ -29,6 +25,14 @@ package structs {
           desk_lookup.toss(this._id);
           item_id = this._id = value;
           desk_lookup.put(this.id, this);
+        }
+
+        public function get is_adjustable():Boolean {
+          return _is_adjustable;
+        }
+
+        public function set is_adjustable(value:Boolean):void {
+          _is_adjustable = value;
         }
     }
 

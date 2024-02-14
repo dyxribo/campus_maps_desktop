@@ -1,6 +1,10 @@
 package structs {
     import geom.Point;
     import structs.Location;
+    import net.blaxstar.starlib.components.LED;
+    import net.blaxstar.starlib.style.Style;
+    import net.blaxstar.starlib.style.Color;
+    import modules.Pin;
 
     public class MappableItem extends Location {
 
@@ -11,6 +15,7 @@ package structs {
         static public var printer_lookup:Map;
         static public var wall_jack_lookup:Map;
         static public var wall_plate_lookup:Map;
+        static public var pin_lookup:Vector.<Pin>;
 
         static public const ITEM_BUILDING:uint = 0;
         static public const ITEM_FLOOR:uint = 1;
@@ -81,6 +86,16 @@ package structs {
                     }
                     item_lookup.put(val.id, val);
                     break;
+            }
+
+            if (!pin_lookup) {
+              pin_lookup = new Vector.<Pin>();
+            }
+
+            if (!(val is Building) && !(val is Floor)) {
+              var pin:Pin = new Pin(null, val);
+              pin.on_color = Color.PRODUCT_RED.value;
+              pin_lookup.push(pin);
             }
         }
 

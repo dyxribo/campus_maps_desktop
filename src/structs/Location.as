@@ -6,7 +6,7 @@ package structs {
     import net.blaxstar.starlib.utils.StringUtil;
     import flash.display.Sprite;
 
-    public class Location extends Sprite {
+    public class Location extends Signal {
 
         static public var directory:Array;
         static public var temp_assignments:uint = 0;

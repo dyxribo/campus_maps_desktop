@@ -60,6 +60,7 @@ package structs {
             var subsection:Subsection = new Subsection();
             subsection.id = json.id;
             subsection._items = new Map(String, MappableItem);
+            subsection.prefix = json.prefix;
 
             for (var key:Object in json.items) {
                 var current_item:Object = json.items[key];
@@ -102,6 +103,7 @@ package structs {
             }
             var json:Object = super.write_json();
             json.items = items_json;
+            json.prefix = prefix;
             return json;
         }
 

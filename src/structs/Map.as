@@ -91,6 +91,13 @@ package structs {
             return this;
         }
 
+        public function iterate(for_each:Function):void {
+          for (var key:* in _dict) {
+            var itm:* = _dict[key];
+            for_each.apply(null, [key, itm]);
+          }
+        }
+
         private function validate(key:Object, value:Object):Boolean {
             return key is key_type && value is val_type;
         }

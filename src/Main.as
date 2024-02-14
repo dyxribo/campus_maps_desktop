@@ -75,9 +75,9 @@ package {
             _db_login_password_field.display_as_password = true;
             _db_login_submit_button = new Button(null, 0, 0, "SUBMIT");
 
-            _db_login_prompt.addComponent(_db_login_username_field);
-            _db_login_prompt.addComponent(_db_login_password_field);
-            _db_login_prompt.addComponent(_db_login_submit_button);
+            _db_login_prompt.add_component(_db_login_username_field);
+            _db_login_prompt.add_component(_db_login_password_field);
+            _db_login_prompt.add_component(_db_login_submit_button);
             _db_login_prompt.set_size(300, 300);
             _db_login_prompt.draggable = false;
 
@@ -123,23 +123,24 @@ package {
             user.id = "dyxribo";
             user.phone = "3478336485";
             user.work_hours = { start_time: 10, end_time: 6, time_zone: "est"};
-            user.position = new Point(1058, 127);
             fl.id = "11F";
             ss_w.id = "WEST";
             desk.id = "11W020";
+            desk.position = new Point(1058, 127);
             desk.assignee = "dyxribo";
             current_location.id = "32OS";
+
             current_location.add_floor(fl);
             fl.add_subsection(ss_w);
-            ss_w.add_item(user);
             ss_w.add_item(desk);
+            user.add_desk(desk);
+
             json.buildings[current_location.id] = current_location.write_json();
             _item_map.read_json(json);
             _item_map.set_location(fl.link);
-            trace(_item_map.search("11W020")[0].item_id);
+            trace(_item_map.search("11W020")[0]);
 
-            // TODO| load default map graphic from savedata, otherwise load last
-            // TODO| visited location via set_location.
+            // TODO| load last visited location via set_location.
 
 
 

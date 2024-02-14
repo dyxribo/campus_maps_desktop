@@ -3,17 +3,23 @@ package structs {
 
     import geom.Point;
     import structs.MappableItem;
+    import flash.utils.Dictionary;
 
     public class MappableUser extends MappableItem {
         private var _username:String;
         private var _email:String;
         private var _phone:String;
+        private var _team_name:String;
+        private var _is_vip:Boolean;
+
         /**
          * start_time: uint, end_time: uint, time_zone: String
          * */
         private var _work_hours:Object;
-        private var _desks:Vector.<String>;
-        private var _assets:Vector.<String>;
+        private var _desks:Map;
+        private var _assets:Map;
+        private var _desk_vector_cache:Vector.<MappableDesk>;
+        private var _asset_vector_cache:Vector.<MappableMachine>;
 
         // TODO: user photos?
 
@@ -23,29 +29,43 @@ package structs {
             this._email = '';
             this._phone = '';
             this._work_hours = {start_time: 0, end_time: 0, time_zone: ""};
-            this._desks = new Vector.<String>();
-            this._assets = new Vector.<String>();
+            this._desks = new Map(String, MappableDesk);
+            this._assets = new Map(String, MappableMachine);
 
             super();
         }
 
-        public function add_desk(desk_id:String):Boolean {
-            if (this._desks.indexOf(desk_id) > -1) {
+        public function add_desk(desk:MappableDesk):Boolean {
+            if (!_desk_vector_cache) {
+                _desk_vector_cache = new Vector.<MappableDesk>();
+            }
+            if (this._desks.has(desk.id)) {
                 DebugDaemon.write_log("error adding desk: the referenced desk already exists for this user.", DebugDaemon.WARN);
                 return false;
             } else {
-                this._desks.push(desk_id);
+                this._desks.put(desk.id, desk);
+                this._desk_vector_cache.push(desk);
             }
             return true;
         }
 
-        public function add_asset(item_id:String):Boolean {
-            if (this._assets.indexOf(item_id) > -1) {
-                // TODO: error cannot add asset
+        public function get_desk(desk_id:String):MappableDesk {
+            if (_desks.has(desk_id)) {
+                return _desks.pull(desk_id) as MappableDesk;
+            }
+            return null;
+        }
+
+        public function add_asset(asset:MappableMachine):Boolean {
+            if (!_asset_vector_cache) {
+                _asset_vector_cache = new Vector.<MappableMachine>();
+            }
+            if (this._assets.has(asset.id)) {
                 DebugDaemon.write_log("error adding asset: the referenced asset already exists for this user.", DebugDaemon.WARN);
                 return false;
             } else {
-                this._assets.push(item_id);
+                this._assets.put(asset.id, asset);
+                _asset_vector_cache.push(asset);
             }
             return true;
         }
@@ -58,8 +78,16 @@ package structs {
             item.email = json.email;
             item.phone = json.phone;
             item.work_hours = json.work_hours;
-            item.desks = json.desks;
-            item.assets = json.assets;
+
+            for (var id:String in json.desks) {
+                var desk:MappableDesk = MappableDesk.read_json(json.desks[id]);
+                item.add_desk(desk);
+            }
+
+            for (id in json.assets) {
+                var asset:MappableMachine = MappableMachine.read_json(json.assets[id]);
+                item.add_asset(asset);
+            }
 
             return item;
         }
@@ -72,20 +100,23 @@ package structs {
             json.phone = this.phone;
             json.work_hours = this.work_hours;
 
-            for (var i:uint = 0; i < _desks.length; i++) {
-                json.desks[_desks[i]] = _desks[i];
+            var desk_dict:Dictionary = _desks.get_dictionary();
+            var asset_dict:Dictionary = _assets.get_dictionary();
+
+            for (var desk:MappableDesk in desk_dict) {
+                json.desks[desk.id] = desk.write_json();
             }
 
-            for (var j:uint = 0; j < _assets.length; j++) {
-                json.assets[_assets[i]] = _assets[i];
+            for (var asset:MappableMachine in asset_dict) {
+                json.assets[asset.id] = asset.write_json();
             }
             return json;
         }
 
         override public function set id(value:String):void {
-          user_lookup.toss(this._id);
-          item_id = this._id = _username = value;
-          user_lookup.put(this.id, this);
+            user_lookup.toss(this._id);
+            item_id = this._id = _username = value;
+            user_lookup.put(this.id, this);
         }
 
         public function get username():String {
@@ -126,20 +157,12 @@ package structs {
             this._work_hours = value;
         }
 
-        public function get desks():Vector.<String> {
-            return this._desks;
+        public function get desks():Vector.<MappableDesk> {
+            return _desk_vector_cache;
         }
 
-        public function set desks(value:Vector.<String>):void {
-            this._desks = value;
-        }
-
-        public function get assets():Vector.<String> {
-            return this._assets;
-        }
-
-        public function set assets(value:Vector.<String>):void {
-            this._assets = value;
+        public function get assets():Vector.<MappableMachine> {
+            return _asset_vector_cache;
         }
     }
 
