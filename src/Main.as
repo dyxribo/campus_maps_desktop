@@ -104,16 +104,14 @@ package {
         }
 
         private function init_campus_data():void {
-            var json:Object = {
-              panned: true,
-              pan_position: {
-                x: 1058,
-                y: 127
-              },
-              buildings: {
+            var json:Object = {panned: true,
+                    pan_position: {
+                        x: 1058,
+                        y: 127
+                    },
+                    buildings: {
 
-              }
-            };
+                    }};
             var current_location:Building = new Building();
             var fl:Floor = new Floor();
             var ss_w:Subsection = new Subsection();
@@ -122,10 +120,12 @@ package {
             user.email = "dyxribo@google.com";
             user.id = "dyxribo";
             user.phone = "3478336485";
-            user.work_hours = { start_time: 10, end_time: 6, time_zone: "est"};
+            user.work_hours = {start_time: 10, end_time: 6, time_zone: "est"};
             fl.id = "11F";
             ss_w.id = "WEST";
+            //
             desk.id = "11W020";
+            //
             desk.position = new Point(1058, 127);
             desk.assignee = "dyxribo";
             current_location.id = "32OS";

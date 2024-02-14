@@ -10,6 +10,7 @@ package views.dialog {
         public function DeskDialogView() {
             super();
             _is_adjustable = new PlainText(this);
+            set_type_field("DESK");
         }
 
         public function set is_adjustable(is_adjustable:Boolean):void {

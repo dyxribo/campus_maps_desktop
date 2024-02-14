@@ -97,21 +97,19 @@ package structs {
             _image_loader = new XLoader();
             _searchbar = new Searchbar();
             _current_location = new Building();
-            _item_detail_dialog = new Dialog();
+            _item_detail_dialog = new Dialog(this);
             _context_menu = new ContextMenu();
 
             add_children();
         }
 
         private function add_children():void {
+            //addChild(_searchbar);
             addChild(_image_container);
             addChild(_image_mask);
-            addChild(_searchbar);
-            addChild(_item_detail_dialog);
-            removeChild(_item_detail_dialog);
+            _item_detail_dialog.close();
 
-            _searchbar.x = _searchbar.y = 10;
-            _searchbar.height = 40;
+
             _item_detail_dialog.addOption("close", _item_detail_dialog.close, Button.DEPRESSED);
         }
 
@@ -360,6 +358,10 @@ package structs {
          * @param json
          */
         public function read_json(json:Object):void {
+            _buildings.iterate(function destroy_all(key:String, item:Building):void {
+                item.destroy();
+            });
+            _buildings = new Map(String, Building);
 
             for (var key:String in json.buildings) {
                 var building_raw:Object = json.buildings[key];
@@ -412,9 +414,8 @@ package structs {
                     var d:DeskDialogView = new DeskDialogView();
 
                     d.is_adjustable = (assoc_item as MappableDesk).is_adjustable;
-                    d.set_name_field("NAME: " + assoc_item.id);
-                    d.set_type_field("TYPE: DESK");
-                    d.set_location_field("LOCATION: " + assoc_item.link);
+                    d.set_name_field(assoc_item.id);
+                    d.set_location_field(assoc_item.link);
                     _item_detail_dialog.add_component(d);
                     _item_detail_dialog.auto_resize = true;
                     _item_detail_dialog.title = assoc_item.id + " properties";
@@ -661,11 +662,7 @@ package structs {
                 _image_mask = new Sprite();
             }
 
-            if (!_image_container) {
-                _image_container = new Sprite();
-                _context_menu = new ContextMenu();
-                _context_menu.hide();
-
+            if (!_context_menu.has_context(Contexts.CONTEXT_MAP_GENERAL)) {
                 // register contexts for context menu
                 var context_map_general:Array = [Contexts.CONTEXT_MAP_GENERAL_ADD_ITEM,
                     Contexts.CONTEXT_MAP_GENERAL_CREATE_PATH];
@@ -678,8 +675,9 @@ package structs {
                 _context_menu.add_context_array(context_map_general, Contexts.CONTEXT_MAP_GENERAL, on_context_click);
 
                 _context_menu.add_context_array(context_map_item, Contexts.CONTEXT_MAP_ITEM, on_context_click);
-
+                // set default context
                 _context_menu.set_context(Contexts.CONTEXT_MAP_GENERAL);
+                _context_menu.hide();
             }
 
             _current_map_image = loaded_image;

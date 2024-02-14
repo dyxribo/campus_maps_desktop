@@ -89,13 +89,13 @@ package structs {
             }
 
             if (!pin_lookup) {
-              pin_lookup = new Vector.<Pin>();
+                pin_lookup = new Vector.<Pin>();
             }
 
-            if (!(val is Building) && !(val is Floor)) {
-              var pin:Pin = new Pin(null, val);
-              pin.on_color = Color.PRODUCT_RED.value;
-              pin_lookup.push(pin);
+            if (!(val is Building) && !(val is Floor) && !(val is Subsection)) {
+                var pin:Pin = new Pin(null, val);
+                pin.on_color = Color.PRODUCT_RED.value;
+                pin_lookup.push(pin);
             }
         }
 
@@ -114,6 +114,29 @@ package structs {
             return json;
         }
 
+        public function destroy():void {
+            _position = null;
+        }
+
+        /**
+         * destroy all lookups.
+         */
+        static public function destroy_lookups():void {
+            item_lookup.destroy();
+            user_lookup.destroy();
+            workstation_lookup.destroy();
+            desk_lookup.destroy();
+            printer_lookup.destroy();
+            wall_jack_lookup.destroy();
+            wall_plate_lookup.destroy();
+            pin_lookup.forEach(function delete_all(current_pin:Pin, index:uint, arr:Vector.<Pin>):void {
+                current_pin.destroy();
+                delete arr[index];
+            });
+            pin_lookup.length = 0;
+            pin_lookup = null;
+        }
+
         public function get link():String {
             return _prefix ? prefix + "_" + _item_id.toUpperCase() : _item_id.toUpperCase();
         }
@@ -123,7 +146,7 @@ package structs {
          * @return
          */
         public function get prefix():String {
-          return _prefix;
+            return _prefix;
         }
 
         public function set prefix(value:String):void {

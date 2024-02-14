@@ -55,6 +55,13 @@ package structs {
             return this._floors.has(id);
         }
 
+        override public function destroy():void {
+            _floors.iterate(function destroy_all(key:String, item:Floor):void {
+                item.destroy();
+            });
+            _floors = null;
+        }
+
         public function get floors():Map {
             return this._floors;
         }

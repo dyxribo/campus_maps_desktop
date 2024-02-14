@@ -60,6 +60,13 @@ package structs {
             return this._subsections.has(subsection_id);
         }
 
+        override public function destroy():void {
+            _subsections.iterate(function destroy_all(key:String, item:Subsection):void {
+                item.destroy();
+            });
+            _subsections = null;
+        }
+
         public function get subsections():Map {
             return this._subsections;
         }

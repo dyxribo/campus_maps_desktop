@@ -64,11 +64,11 @@ package structs {
         }
 
         public function get overwrite():Boolean {
-          return _overwrite;
+            return _overwrite;
         }
 
         public function set overwrite(value:Boolean):void {
-          _overwrite = value;
+            _overwrite = value;
         }
 
         public function get_dictionary():Dictionary {
@@ -92,10 +92,17 @@ package structs {
         }
 
         public function iterate(for_each:Function):void {
-          for (var key:* in _dict) {
-            var itm:* = _dict[key];
-            for_each.apply(null, [key, itm]);
-          }
+            for (var key:* in _dict) {
+                var itm:* = _dict[key];
+                for_each.apply(null, [key, itm]);
+            }
+        }
+
+        public function destroy():void {
+            iterate(function delete_all(key:String, item:*):void {
+                delete _dict[key];
+            });
+            _dict = null;
         }
 
         private function validate(key:Object, value:Object):Boolean {
