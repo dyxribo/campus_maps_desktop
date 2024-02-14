@@ -420,7 +420,8 @@ package structs {
                     _item_detail_dialog.auto_resize = true;
                     _item_detail_dialog.title = assoc_item.id + " properties";
                     _item_detail_dialog.message = '';
-                    _item_detail_dialog.move(mouseX - assoc_item.position.x + Component.PADDING, mouseX - assoc_item.position.y + Component.PADDING);
+                    _item_detail_dialog.move(clicked_pin.x + _image_container.x, clicked_pin.y + _image_container.y);
+                    // TODO: add edit button to dialog in order to modify props. this needs to be authenticated, though.
                     break;
 
                 default:
