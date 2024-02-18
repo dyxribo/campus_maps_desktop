@@ -26,6 +26,9 @@ package {
     import flash.display.StageAlign;
     import structs.MappableUser;
     import geom.Point;
+    import net.blaxstar.starlib.math.Arithmetic;
+    import structs.workhours.WorkHours;
+    import structs.workhours.TimeZone;
 
     /**
      * TODO: documentation
@@ -63,25 +66,27 @@ package {
             Style.init(this);
             Font.init();
 
-            //begin_auth();
+            begin_auth();
             init_map();
         }
 
         private function begin_auth():void {
-            _db_login_prompt = new Dialog(this, "Login to Campus Maps");
+        /*
+           _db_login_prompt = new Dialog(this, "Login to Campus Maps");
 
-            _db_login_username_field = new InputTextField(null, 0, 0, "username");
-            _db_login_password_field = new InputTextField(null, 0, 0, "password");
-            _db_login_password_field.display_as_password = true;
-            _db_login_submit_button = new Button(null, 0, 0, "SUBMIT");
+           _db_login_username_field = new InputTextField(null, 0, 0, "username");
+           _db_login_password_field = new InputTextField(null, 0, 0, "password");
+           _db_login_password_field.display_as_password = true;
+           _db_login_submit_button = new Button(null, 0, 0, "SUBMIT");
 
-            _db_login_prompt.add_component(_db_login_username_field);
-            _db_login_prompt.add_component(_db_login_password_field);
-            _db_login_prompt.add_component(_db_login_submit_button);
-            _db_login_prompt.set_size(300, 300);
-            _db_login_prompt.draggable = false;
+           _db_login_prompt.add_component(_db_login_username_field);
+           _db_login_prompt.add_component(_db_login_password_field);
+           _db_login_prompt.add_component(_db_login_submit_button);
+           _db_login_prompt.set_size(300, 300);
+           _db_login_prompt.draggable = false;
 
-            _db_login_submit_button.on_click.add(on_login_form_submit);
+           _db_login_submit_button.on_click.add(on_login_form_submit);
+         */
         }
 
         private function on_login_form_submit(e:MouseEvent):void {
@@ -117,15 +122,17 @@ package {
             var ss_w:Subsection = new Subsection();
             var desk:MappableDesk = new MappableDesk();
             var user:MappableUser = new MappableUser();
-            user.email = "dyxribo@google.com";
+            user.first_name = "Deron";
+            user.last_name = "Decamp";
             user.id = "dyxribo";
+            user.email = "dyxribo@google.com";
             user.phone = "3478336485";
-            user.work_hours = {start_time: 10, end_time: 6, time_zone: "est"};
+            user.work_hours = new WorkHours().populate_all("10", "6", TimeZone.EST);
+
             fl.id = "11F";
             ss_w.id = "WEST";
-            //
+            //vv
             desk.id = "11W020";
-            //
             desk.position = new Point(1058, 127);
             desk.assignee = "dyxribo";
             current_location.id = "32OS";
@@ -136,6 +143,8 @@ package {
             user.add_desk(desk);
 
             json.buildings[current_location.id] = current_location.write_json();
+            var s:String = JSON.stringify(json);
+            // TODO: need to make reset methods for reusing objects for read_json, since data conflicts with the old data, causing that conflict warn message you'll see if you run this right now
             _item_map.read_json(json);
             _item_map.set_location(fl.link);
             trace(_item_map.search("11W020")[0]);

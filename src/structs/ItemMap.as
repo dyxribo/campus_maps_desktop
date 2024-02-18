@@ -60,12 +60,11 @@ package structs {
         private var _image_mask:Sprite;
         private var _image_container:Sprite;
         private var _searchbar:Searchbar;
-        private var _clusters:Vector.<Point>;
-        private var _currently_expanded_cluster:Vector.<Point>;
         private var _image_size:Point;
         private var _pan_position:Point;
         private var _context_menu:ContextMenu;
         private var _item_detail_dialog:Dialog;
+        private var _target_pin:Pin;
 
         private var _on_context_menu_roll_out:NativeSignal;
         private var _on_context_menu_release_outside:NativeSignal;
@@ -97,8 +96,8 @@ package structs {
             _image_loader = new XLoader();
             _searchbar = new Searchbar();
             _current_location = new Building();
-            _item_detail_dialog = new Dialog(this);
             _context_menu = new ContextMenu();
+            _item_detail_dialog = new Dialog(this);
 
             add_children();
         }
@@ -108,7 +107,8 @@ package structs {
             addChild(_image_container);
             addChild(_image_mask);
             _item_detail_dialog.close();
-
+            _item_detail_dialog.auto_resize = false;
+            _item_detail_dialog.height = 300;
 
             _item_detail_dialog.addOption("close", _item_detail_dialog.close, Button.DEPRESSED);
         }
@@ -136,7 +136,6 @@ package structs {
          */
         public function search(query:String, search_by:uint = SEARCH_ALL):Vector.<MappableItem> {
             var results:Vector.<MappableItem> = new Vector.<MappableItem>();
-
             // if the query is a direct link, then return the exact match.
             // otherwise, search everything and return what's found.
             var item_reference:MappableItem = test_path(query);
@@ -160,7 +159,6 @@ package structs {
                          * subsection id only
                          * generic item id only
                          * */
-
                         var desk:MappableDesk = search_desks(query);
                         var user:MappableUser = search_users(query);
                         var workstation:MappableWorkstation;
@@ -278,11 +276,11 @@ package structs {
                     return null;
                 } else {
                     var bldg:Building = _buildings.pull(building_id) as Building;
+
                     if (floor_id && bldg.has_floor(floor_id)) {
                         var fl:Floor = bldg.get_floor(floor_id);
 
                         if (subsection_id && fl.has_subsection(subsection_id)) {
-
                             var ss:Subsection = fl.get_subsection(subsection_id);
 
                             if (item_id && ss.has_item(item_id)) {
@@ -310,6 +308,7 @@ package structs {
             if (!MappableItem.user_lookup) {
                 return null;
             }
+
             if (MappableItem.user_lookup.has(username)) {
                 return (MappableItem.user_lookup.pull(username) as MappableUser);
             }
@@ -320,6 +319,7 @@ package structs {
             if (!MappableItem.desk_lookup) {
                 return null;
             }
+
             if (MappableItem.desk_lookup.has(desk_id)) {
                 return (MappableItem.desk_lookup.pull(desk_id) as MappableDesk);
             }
@@ -399,8 +399,8 @@ package structs {
         }
 
         private function on_pin_click(e:MouseEvent):void {
-            var clicked_pin:Pin = e.currentTarget as Pin;
-            var assoc_item:MappableItem = clicked_pin.linked_item;
+            _target_pin = e.currentTarget as Pin;
+            var assoc_item:MappableItem = _target_pin.linked_item;
 
             if (_item_detail_dialog.component_container.numChildren > 0 && assoc_item.type !== (_item_detail_dialog.component_container.getChildAt(0) as BaseDialogView).info_type) {
 
@@ -416,11 +416,12 @@ package structs {
                     d.is_adjustable = (assoc_item as MappableDesk).is_adjustable;
                     d.set_name_field(assoc_item.id);
                     d.set_location_field(assoc_item.link);
+                    d.set_assignee_field((assoc_item as MappableDesk).assignee);
                     _item_detail_dialog.add_component(d);
                     _item_detail_dialog.auto_resize = true;
                     _item_detail_dialog.title = assoc_item.id + " properties";
                     _item_detail_dialog.message = '';
-                    _item_detail_dialog.move(clicked_pin.x + _image_container.x, clicked_pin.y + _image_container.y);
+                    _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
                     // TODO: add edit button to dialog in order to modify props. this needs to be authenticated, though.
                     break;
 
@@ -704,6 +705,9 @@ package structs {
             _on_image_container_release_outside.remove(on_mouse_up);
             _on_image_container_mouse_down.add(on_mouse_down);
             _image_container.stopDrag();
+            if (_item_detail_dialog.parent) {
+                _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
+            }
         }
 
         private function on_right_click(e:MouseEvent):void {

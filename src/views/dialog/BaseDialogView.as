@@ -8,6 +8,7 @@ package views.dialog {
         private var _item_name_field:PlainText;
         private var _item_type_field:PlainText;
         private var _item_location:PlainText;
+        private var _item_assignee:PlainText;
 
         /**
          * TODO: allow manual editing, if to be uploaded to database
@@ -21,6 +22,7 @@ package views.dialog {
             _item_name_field = new PlainText(this, 0, 0, "item name");
             _item_type_field = new PlainText(this, 0, 0, "item type");
             _item_location = new PlainText(this, 0, 0, "item location");
+            _item_assignee = new PlainText(this, 0, 0, "item assignee");
         }
 
         public function get info_type():uint {
@@ -41,6 +43,10 @@ package views.dialog {
 
         public function set_location_field(location:String):void {
             _item_location.text = "LOCATION: " + location;
+        }
+
+        public function set_assignee_field(assignee:String):void {
+            _item_assignee.text = "ASSIGNED USER: " + assignee;
         }
     }
 }

@@ -4,18 +4,18 @@ package structs {
     import geom.Point;
     import structs.MappableItem;
     import flash.utils.Dictionary;
+    import structs.workhours.WorkHours;
 
     public class MappableUser extends MappableItem {
+        private var _first_name:String;
+        private var _last_name:String;
         private var _username:String;
         private var _email:String;
         private var _phone:String;
         private var _team_name:String;
         private var _is_vip:Boolean;
+        private var _work_hours:WorkHours;
 
-        /**
-         * start_time: uint, end_time: uint, time_zone: String
-         * */
-        private var _work_hours:Object;
         private var _desks:Map;
         private var _assets:Map;
         private var _desk_vector_cache:Vector.<MappableDesk>;
@@ -28,7 +28,7 @@ package structs {
             this._username = '';
             this._email = '';
             this._phone = '';
-            this._work_hours = {start_time: 0, end_time: 0, time_zone: ""};
+            this._work_hours = new WorkHours();
             this._desks = new Map(String, MappableDesk);
             this._assets = new Map(String, MappableMachine);
 
@@ -68,6 +68,19 @@ package structs {
                 _asset_vector_cache.push(asset);
             }
             return true;
+        }
+
+        public function populate_all(first_name:String, last_name:String, username:String, email:String, phone:String, team_name:String, work_hours:WorkHours, is_vip:Boolean):MappableUser {
+            _first_name = first_name;
+            _last_name = last_name;
+            _username = username;
+            _email = email;
+            _phone = phone;
+            _team_name = team_name;
+            _work_hours = work_hours;
+            _is_vip = is_vip;
+
+            return this;
         }
 
         static public function read_json(json:Object):MappableUser {
@@ -119,6 +132,22 @@ package structs {
             user_lookup.put(this.id, this);
         }
 
+        public function get first_name():String {
+            return this._first_name;
+        }
+
+        public function set first_name(value:String):void {
+            this._first_name = value;
+        }
+
+        public function get last_name():String {
+            return this._last_name;
+        }
+
+        public function set last_name(value:String):void {
+            this._last_name = value;
+        }
+
         public function get username():String {
             return this._username;
         }
@@ -146,14 +175,14 @@ package structs {
         /**
          * start_time: uint, end_time: uint, time_zone: String
          * */
-        public function get work_hours():Object {
+        public function get work_hours():WorkHours {
             return this._work_hours;
         }
 
         /**
          * start_time: uint, end_time: uint, time_zone: String
          * */
-        public function set work_hours(value:Object):void {
+        public function set work_hours(value:WorkHours):void {
             this._work_hours = value;
         }
 

@@ -27,10 +27,10 @@ package structs {
                         ++_dict_size;
                     } else {
                         // KEY EXISTS
-                        DebugDaemon.write_log("couldn't put item in Map: the specified key already exists.", DebugDaemon.WARN);
+                        DebugDaemon.write_log("couldn't put item in Map: the specified key already exists: %s", DebugDaemon.WARN, key);
                     }
                 } else {
-                    // SET THE KEYS VALUE SINCE OVERWRITING MEANS NO NEED TO CHECK
+                    // SET THE KEYS VALUE, SINCE OVERWRITING MEANS NO NEED TO CHECK
                     _dict[key] = value;
                 }
             } else {
