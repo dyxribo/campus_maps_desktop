@@ -64,7 +64,6 @@ package structs {
             _subsections.iterate(function destroy_all(key:String, item:Subsection):void {
                 item.destroy();
             });
-            _subsections = null;
         }
 
         public function get subsections():Map {

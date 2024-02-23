@@ -111,7 +111,6 @@ package structs {
             _items.iterate(function destroy_all(key:String, item:MappableItem):void {
                 item.destroy();
             });
-            _items = null;
         }
 
         override public function set id(value:String):void {

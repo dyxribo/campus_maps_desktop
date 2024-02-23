@@ -102,7 +102,6 @@ package structs {
             iterate(function delete_all(key:String, item:*):void {
                 delete _dict[key];
             });
-            _dict = null;
         }
 
         private function validate(key:Object, value:Object):Boolean {

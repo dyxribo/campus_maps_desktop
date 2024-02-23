@@ -360,8 +360,10 @@ package structs {
         public function read_json(json:Object):void {
             _buildings.iterate(function destroy_all(key:String, item:Building):void {
                 item.destroy();
+                delete _buildings[key];
             });
-            _buildings = new Map(String, Building);
+
+            MappableItem.destroy_lookups();
 
             for (var key:String in json.buildings) {
                 var building_raw:Object = json.buildings[key];

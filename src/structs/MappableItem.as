@@ -115,20 +115,36 @@ package structs {
         }
 
         public function destroy():void {
-            _position = null;
+            _position.x = _position.y = 0;
         }
 
         /**
          * destroy all lookups.
          */
         static public function destroy_lookups():void {
-            item_lookup.destroy();
-            user_lookup.destroy();
-            workstation_lookup.destroy();
-            desk_lookup.destroy();
-            printer_lookup.destroy();
-            wall_jack_lookup.destroy();
-            wall_plate_lookup.destroy();
+            if (item_lookup) {
+                item_lookup.destroy();
+            }
+            if (user_lookup) {
+                user_lookup.destroy();
+            }
+            if (workstation_lookup) {
+                workstation_lookup.destroy();
+            }
+            if (desk_lookup) {
+                desk_lookup.destroy();
+            }
+            if (printer_lookup) {
+                printer_lookup.destroy();
+            }
+            if (wall_jack_lookup) {
+                wall_jack_lookup.destroy();
+            }
+            if (wall_plate_lookup) {
+                wall_plate_lookup.destroy();
+            }
+
+
             pin_lookup.forEach(function delete_all(current_pin:Pin, index:uint, arr:Vector.<Pin>):void {
                 current_pin.destroy();
                 delete arr[index];

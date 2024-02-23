@@ -144,7 +144,6 @@ package {
 
             json.buildings[current_location.id] = current_location.write_json();
             var s:String = JSON.stringify(json);
-            // TODO: need to make reset methods for reusing objects for read_json, since data conflicts with the old data, causing that conflict warn message you'll see if you run this right now
             _item_map.read_json(json);
             _item_map.set_location(fl.link);
             trace(_item_map.search("11W020")[0]);
