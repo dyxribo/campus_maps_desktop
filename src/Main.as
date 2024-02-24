@@ -100,7 +100,7 @@ package {
 
         private function init_map():void {
             init_map_display();
-            init_campus_data();
+            load_campus_data();
         }
 
         private function init_map_display():void {
@@ -108,27 +108,18 @@ package {
             addChild(_item_map);
         }
 
-        private function init_campus_data():void {
-            var json:Object = {panned: true,
-                    pan_position: {
-                        x: 1058,
-                        y: 127
-                    },
-                    buildings: {
+        private function load_campus_data():void {
 
-                    }};
             var current_location:Building = new Building();
             var fl:Floor = new Floor();
             var ss_w:Subsection = new Subsection();
             var desk:MappableDesk = new MappableDesk();
             var user:MappableUser = new MappableUser();
-            user.first_name = "Deron";
-            user.last_name = "Decamp";
-            user.id = "dyxribo";
-            user.email = "dyxribo@google.com";
-            user.phone = "3478336485";
-            user.work_hours = new WorkHours().populate_all("10", "6", TimeZone.EST);
 
+            user.populate_all("Deron", "Decamp", "dyxribo", "dyxribo@google.com", "3478336485", "information technology: helpdesk", new WorkHours().populate_all("10", "6", TimeZone.EST), false);
+
+            var uj:Object = user.write_json();
+            var s:String = JSON.stringify(uj);
             fl.id = "11F";
             ss_w.id = "WEST";
             //vv
@@ -142,11 +133,10 @@ package {
             ss_w.add_item(desk);
             user.add_desk(desk);
 
-            json.buildings[current_location.id] = current_location.write_json();
-            var s:String = JSON.stringify(json);
-            _item_map.read_json(json);
+
+            //_item_map.read_json(json);
             _item_map.set_location(fl.link);
-            trace(_item_map.search("11W020")[0]);
+            trace(_item_map.search("11W020")[0].link);
 
             // TODO| load last visited location via set_location.
 

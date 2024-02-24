@@ -29,7 +29,7 @@ package structs.workhours {
             return _end_time;
         }
 
-        public function set ent_time(value:String):void {
+        public function set end_time(value:String):void {
             _end_time = value;
         }
 

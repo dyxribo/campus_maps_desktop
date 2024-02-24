@@ -1,0 +1,39 @@
+{
+  "buildings": {
+    "32OS": {
+      "floors": {
+        "11F": {
+          "prefix": "32OS",
+          "id": "11F",
+          "items": {},
+          "type": 1,
+          "subsections": {
+            "WEST": {
+              "type": 2,
+              "items": {
+                "11W020": {
+                  "type": 5,
+                  "assignee": "dyxribo",
+                  "position": { "y": 127, "x": 1058 },
+                  "id": "11W020"
+                }
+              },
+              "prefix": "32OS_11F",
+              "position": { "y": 0, "x": 0 },
+              "id": "WEST"
+            }
+          },
+          "position": { "y": 0, "x": 0 }
+        }
+      },
+      "prefix": null,
+      "id": "32OS",
+      "items": {},
+      "type": 0,
+      "subsections": {},
+      "position": { "y": 0, "x": 0 }
+    }
+  },
+  "panned": true,
+  "pan_position": { "y": 127, "x": 1058 }
+}

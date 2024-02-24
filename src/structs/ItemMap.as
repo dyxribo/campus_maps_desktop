@@ -31,6 +31,8 @@ package structs {
     import debug.printf;
     import modules.Searchbar;
     import views.dialog.BaseDialogView;
+    import flash.geom.Matrix;
+    import flash.events.Event;
 
     /**
      * /// TODO: documentation
@@ -76,6 +78,7 @@ package structs {
         private var _on_image_container_right_click:NativeSignal;
         private var _on_pin_click_signal:NativeSignal;
         private var _on_viewport_resize:NativeSignal;
+        private var _is_dragging_map:Boolean;
 
         /**
          * /// TODO: documentation
@@ -685,6 +688,8 @@ package structs {
             }
 
             _current_map_image = loaded_image;
+            _current_map_image.cacheAsBitmap = true;
+            _current_map_image.cacheAsBitmapMatrix = new Matrix();
             _image_container.addChild(_current_map_image);
             addChild(_image_container);
             addChild(_image_mask);
@@ -699,17 +704,27 @@ package structs {
             _on_image_container_mouse_up.add(on_mouse_up);
             _on_image_container_release_outside.add(on_mouse_up);
             _image_container.startDrag();
+            _is_dragging_map = true;
+            _item_detail_dialog.on_enter_frame_signal.add(on_mouse_move);
 
         }
 
+        private function on_mouse_move(e:Event):void {
+            if (_is_dragging_map) {
+                if (_item_detail_dialog.parent) {
+                    _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
+                }
+            }
+        }
+
         private function on_mouse_up(e:MouseEvent):void {
+            _is_dragging_map = false;
+            _item_detail_dialog.on_enter_frame_signal.remove(on_mouse_move);
             _on_image_container_mouse_up.remove(on_mouse_up);
             _on_image_container_release_outside.remove(on_mouse_up);
             _on_image_container_mouse_down.add(on_mouse_down);
             _image_container.stopDrag();
-            if (_item_detail_dialog.parent) {
-                _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
-            }
+
         }
 
         private function on_right_click(e:MouseEvent):void {

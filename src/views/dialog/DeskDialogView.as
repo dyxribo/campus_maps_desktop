@@ -1,5 +1,4 @@
 package views.dialog {
-    import net.blaxstar.starlib.components.Checkbox;
     import net.blaxstar.starlib.components.PlainText;
 
     public class DeskDialogView extends BaseDialogView {

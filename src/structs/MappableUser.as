@@ -79,7 +79,7 @@ package structs {
             _team_name = team_name;
             _work_hours = work_hours;
             _is_vip = is_vip;
-
+            id = username;
             return this;
         }
 
@@ -129,7 +129,7 @@ package structs {
         override public function set id(value:String):void {
             user_lookup.toss(this._id);
             item_id = this._id = _username = value;
-            user_lookup.put(this.id, this);
+            user_lookup.put(this._id, this);
         }
 
         public function get first_name():String {
