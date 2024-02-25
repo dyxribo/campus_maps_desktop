@@ -1,0 +1,45 @@
+{
+    "result": [
+        {
+            "os_address_width": "64",
+            "attested_date": "",
+            "operational_status": "1",
+            "os_service_pack": "17763",
+            "ram": "32",
+            "cpu_speed": "3.2",
+            "disk_space": "4765",
+            "dns_domain": "dns.domain",
+            "os_domain": "dns.domain",
+            "serial_number": "MXL9044KG5",
+            "cpu_core_count": "6",
+            "cpu_type": "Intel Core i7-8700",
+            "asset_tag": "ASSET13382",
+            "internet_facing": "true",
+            "hardware_status": "installed",
+            "name": "ASSET13382",
+            "virtual": "false",
+            "os": "Windows 10",
+            "ip_address": "192.168.124.4"
+        },
+        {
+            "os_address_width": "64",
+            "operational_status": "1",
+            "os_service_pack": "17763",
+            "ram": "16",
+            "cpu_speed": "3",
+            "disk_space": "1500",
+            "dns_domain": "dns.domain",
+            "os_domain": "dns.domain",
+            "serial_number": "VMWARE-42 3D 8C 13 D8 9A 6E 68-74 2B F4 ",
+            "cpu_core_count": "3",
+            "cpu_type": "Intel Xeon(R) Gold 6248R",
+            "asset_tag": "VASSET-226",
+            "internet_facing": "true",
+            "hardware_status": "installed",
+            "name": "VASSET-226",
+            "virtual": "true",
+            "os": "Windows 10",
+            "ip_address": "192.168.200.118"
+        }
+    ]
+}
