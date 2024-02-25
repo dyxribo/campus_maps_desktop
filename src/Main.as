@@ -109,38 +109,10 @@ package {
         }
 
         private function load_campus_data():void {
-
-            var current_location:Building = new Building();
-            var fl:Floor = new Floor();
-            var ss_w:Subsection = new Subsection();
-            var desk:MappableDesk = new MappableDesk();
-            var user:MappableUser = new MappableUser();
-
-            user.populate_all("Deron", "Decamp", "dyxribo", "dyxribo@google.com", "3478336485", "information technology: helpdesk", new WorkHours().populate_all("10", "6", TimeZone.EST), false);
-
-            fl.id = "11F";
-            ss_w.id = "WEST";
-            //vv
-            desk.id = "11W020";
-            desk.position = new Point(1058, 127);
-            desk.assignee = "dyxribo";
-            current_location.id = "32OS";
-
-            current_location.add_floor(fl);
-            fl.add_subsection(ss_w);
-            ss_w.add_item(desk);
-            user.add_desk(desk);
-
-
-            //_item_map.read_json(json);
-            _item_map.set_location(fl.link);
-            trace(_item_map.search("11W020")[0].link);
+            // TODO: load app_db. initial sync of pc and usr json with api, integrating it with app_db. sync occasionally. if file changes, loop through users and machines to see what's new.
 
             // TODO| load last visited location via set_location.
-
-
-
-            DebugDaemon.write_log(desk.link);
+            _item_map.set_location("");
         }
 
         private function on_login_result(result:String):void {
