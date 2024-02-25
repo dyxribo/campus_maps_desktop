@@ -118,8 +118,6 @@ package {
 
             user.populate_all("Deron", "Decamp", "dyxribo", "dyxribo@google.com", "3478336485", "information technology: helpdesk", new WorkHours().populate_all("10", "6", TimeZone.EST), false);
 
-            var uj:Object = user.write_json();
-            var s:String = JSON.stringify(uj);
             fl.id = "11F";
             ss_w.id = "WEST";
             //vv

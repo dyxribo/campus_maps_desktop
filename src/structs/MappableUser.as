@@ -32,12 +32,6 @@ package structs {
 
         public function MappableUser() {
             this.type = MappableItem.ITEM_USER;
-            this._username = '';
-            this._email = '';
-            this._phone = '';
-            this._work_hours = new WorkHours();
-            this._desks = new Map(String, MappableDesk);
-            this._assets = new Map(String, MappableMachine);
 
             super();
         }
@@ -47,7 +41,7 @@ package structs {
                 _desk_vector_cache = new Vector.<MappableDesk>();
             }
             if (this._desks.has(desk.id)) {
-                DebugDaemon.write_log("error adding desk: the referenced desk already exists for this user.", DebugDaemon.WARN);
+                DebugDaemon.write_log("error adding desk: the referenced desk already exists for this user (%s).", DebugDaemon.WARN, this._username);
                 return false;
             } else {
                 this._desks.put(desk.id, desk);
@@ -86,7 +80,7 @@ package structs {
             _team_name = team_name;
             _work_hours = work_hours;
             _is_vip = is_vip;
-            id = username;
+            this.id = username;
             return this;
         }
 
@@ -98,6 +92,11 @@ package structs {
             item.email = json.email;
             item.phone = json.phone;
             item.work_hours = json.work_hours;
+            item.full_name = json.full_name;
+            item.domain_string = json.domain_string;
+            item.staffing_type = json.staffing_type;
+            item.title = json.title;
+            item.business_criticality = json.business_criticality;
 
             for (var id:String in json.desks) {
                 var desk:MappableDesk = MappableDesk.read_json(json.desks[id]);
@@ -115,10 +114,15 @@ package structs {
         override public function write_json():Object {
             var json:Object = super.write_json();
 
-            json.username = this.username;
-            json.email = this.email;
-            json.phone = this.phone;
-            json.work_hours = this.work_hours;
+            json.username = this._username;
+            json.email = this._email;
+            json.phone = this._phone;
+            json.work_hours = this._work_hours;
+            json.full_name = this._full_name;
+            json.domain_string = this._domain_string;
+            json.staffing_type = this._staffing_type;
+            json.title = this._title;
+            json.business_criticality = this._business_criticality;
 
             var desk_dict:Dictionary = _desks.get_dictionary();
             var asset_dict:Dictionary = _assets.get_dictionary();
@@ -179,18 +183,52 @@ package structs {
             this._phone = value;
         }
 
-        /**
-         * start_time: uint, end_time: uint, time_zone: String
-         * */
         public function get work_hours():WorkHours {
             return this._work_hours;
         }
 
-        /**
-         * start_time: uint, end_time: uint, time_zone: String
-         * */
         public function set work_hours(value:WorkHours):void {
             this._work_hours = value;
+        }
+
+        public function get full_name():String {
+            return this._full_name;
+        }
+
+        public function set full_name(value:String):void {
+            this._full_name = value;
+        }
+
+        public function get domain_string():String {
+            return this._domain_string;
+        }
+
+        public function set domain_string(value:String):void {
+            this._domain_string = value;
+        }
+
+        public function get staffing_type():String {
+            return this._staffing_type;
+        }
+
+        public function set staffing_type(value:String):void {
+            this._staffing_type = value;
+        }
+
+        public function get title():String {
+            return this._title;
+        }
+
+        public function set title(value:String):void {
+            this._title = value;
+        }
+
+        public function get business_criticality():String {
+            return this._business_criticality;
+        }
+
+        public function set business_criticality(value:String):void {
+            this._business_criticality = value;
         }
 
         public function get desks():Vector.<MappableDesk> {
