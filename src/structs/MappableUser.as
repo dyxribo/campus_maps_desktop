@@ -9,12 +9,19 @@ package structs {
     public class MappableUser extends MappableItem {
         private var _first_name:String;
         private var _last_name:String;
+        private var _full_name:String;
         private var _username:String;
         private var _email:String;
         private var _phone:String;
         private var _team_name:String;
-        private var _is_vip:Boolean;
         private var _work_hours:WorkHours;
+        private var _domain_string:String;
+        /**  possible values are EMP, CONS & AGENCY, which are employee, consultant/temp & vendor, respectively. */
+        private var _staffing_type:String;
+        private var _title:String;
+        /** this is actually a stringified int */
+        private var _business_criticality:String;
+        private var _is_vip:Boolean;
 
         private var _desks:Map;
         private var _assets:Map;
