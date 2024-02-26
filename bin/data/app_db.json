@@ -35,5 +35,6 @@
     }
   },
   "panned": true,
-  "pan_position": { "y": 127, "x": 1058 }
+  "pan_position": { "y": 127, "x": 1058 },
+  "default_location": "32OS_11F"
 }

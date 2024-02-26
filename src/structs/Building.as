@@ -1,7 +1,7 @@
 package structs {
-    import debug.DebugDaemon;
-
     import flash.utils.Dictionary;
+
+    import net.blaxstar.starlib.debug.DebugDaemon;
 
     public class Building extends Floor {
         private const _LOCATION_LINK_PATTERN:RegExp = /^([a-zA-Z0-9]+)(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?$/;
@@ -15,6 +15,7 @@ package structs {
         private var _floors:Map;
         private var _building_id:String;
 
+        // TODO: REMOVE DEBUG STUFF
         public function Building() {
             super();
             this.id = "bldg" + Location.temp_assignments++;

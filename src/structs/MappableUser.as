@@ -1,9 +1,11 @@
 package structs {
-    import debug.DebugDaemon;
+    import flash.utils.Dictionary;
 
     import geom.Point;
+
+    import net.blaxstar.starlib.debug.DebugDaemon;
+
     import structs.MappableItem;
-    import flash.utils.Dictionary;
     import structs.workhours.WorkHours;
 
     public class MappableUser extends MappableItem {
@@ -29,7 +31,7 @@ package structs {
         private var _asset_vector_cache:Vector.<MappableMachine>;
 
         // TODO: user photos?
-
+        // TODO: REMOVE DEBUG STUFF
         public function MappableUser() {
             this.type = MappableItem.ITEM_USER;
 

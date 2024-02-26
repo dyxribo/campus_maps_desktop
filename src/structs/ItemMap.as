@@ -1,25 +1,26 @@
 package structs {
     import config.SaveData;
 
-    import debug.DebugDaemon;
-
     import flash.display.Bitmap;
     import flash.display.Graphics;
     import flash.display.Sprite;
+    import flash.events.Event;
     import flash.events.MouseEvent;
     import flash.events.NativeWindowBoundsEvent;
     import flash.filesystem.File;
+    import flash.geom.Matrix;
     import flash.utils.Dictionary;
 
     import geom.Point;
 
     import modules.Pin;
+    import modules.Searchbar;
 
     import net.blaxstar.starlib.components.Button;
-    import net.blaxstar.starlib.components.Component;
     import net.blaxstar.starlib.components.ContextMenu;
     import net.blaxstar.starlib.components.Dialog;
     import net.blaxstar.starlib.components.ListItem;
+    import net.blaxstar.starlib.debug.DebugDaemon;
     import net.blaxstar.starlib.io.URL;
     import net.blaxstar.starlib.io.XLoader;
     import net.blaxstar.starlib.utils.StringUtil;
@@ -27,15 +28,14 @@ package structs {
     import thirdparty.com.greensock.TweenLite;
     import thirdparty.org.osflash.signals.natives.NativeSignal;
 
-    import views.dialog.DeskDialogView;
-    import debug.printf;
-    import modules.Searchbar;
     import views.dialog.BaseDialogView;
-    import flash.geom.Matrix;
-    import flash.events.Event;
+    import views.dialog.DeskDialogView;
+    import thirdparty.org.osflash.signals.Signal;
+    import flash.display.BitmapData;
 
     /**
-     * /// TODO: documentation
+     * TODO: documentation
+     * TODO: REMOVE DEBUG STUFF
      */
     public class ItemMap extends Sprite {
         public static const SEARCH_DESK:uint = 0;
@@ -53,12 +53,14 @@ package structs {
         private const _ASSET_IMAGE_FOLDER:File = File.applicationDirectory.resolvePath("assets").resolvePath("img");
 
         private const _ZOOM_FACTOR:Number = 0.1;
+        private const _PATH_RESOLUTION_INDEX:Array = [5];
 
         / * PRIVATE VAR * /
         private var _current_location:Building;
         private var _buildings:Map;
         private var _image_loader:XLoader;
         private var _current_map_image:Bitmap;
+        private var _bitmap_data_cache:Dictionary;
         private var _image_mask:Sprite;
         private var _image_container:Sprite;
         private var _searchbar:Searchbar;
@@ -67,6 +69,7 @@ package structs {
         private var _context_menu:ContextMenu;
         private var _item_detail_dialog:Dialog;
         private var _target_pin:Pin;
+
 
         private var _on_context_menu_roll_out:NativeSignal;
         private var _on_context_menu_release_outside:NativeSignal;
@@ -98,7 +101,6 @@ package structs {
             _image_mask = new Sprite();
             _image_loader = new XLoader();
             _searchbar = new Searchbar();
-            _current_location = new Building();
             _context_menu = new ContextMenu();
             _item_detail_dialog = new Dialog(this);
 
@@ -122,12 +124,29 @@ package structs {
          * @returns
          */
         public function set_location(location_link:String):void {
-            var resolvable:Boolean = navigate_to(location_link);
+            var resolvable:Boolean = test_path(location_link);
 
             if (resolvable) {
-                display_map(location_link);
+                // the building and floor have to be resolvable via regex matches to make it here, so we can just assume the matches work
+                var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
+
+                _current_location = _buildings.pull(link_elements[1]) as Building;
+                _current_location.floor_id = link_elements[2];
+
+                // nothing after floor is guaranteed, since technically a floor link is valid. so now we just double check for subsections and general mappable items
+                if (_PATH_RESOLUTION_INDEX[2] == 1) {
+                    // subsection is resolvable, so add that sucker in there
+                    _current_location.subsection_id = link_elements[3];
+                }
+
+                if (_PATH_RESOLUTION_INDEX[3] == 1) {
+                    // this link is resolvable down to the item level! how nice!
+                    _current_location.item_id = link_elements[4];
+                }
+
+                display_map();
             } else {
-                DebugDaemon.write_log("cannot display map: the location link is not resolvable. got: %s", DebugDaemon.ERROR_GENERIC, location_link);
+                DebugDaemon.write_error("cannot display map: the location link is not resolvable. got: %s", location_link);
                 return;
             }
         }
@@ -141,7 +160,7 @@ package structs {
             var results:Vector.<MappableItem> = new Vector.<MappableItem>();
             // if the query is a direct link, then return the exact match.
             // otherwise, search everything and return what's found.
-            var item_reference:MappableItem = test_path(query);
+            var item_reference:MappableItem = get_location(query);
             if (item_reference) {
                 // direct link
                 results.push(item_reference);
@@ -150,7 +169,7 @@ package structs {
                 switch (search_by) {
                     case SEARCH_ALL:
                     default:
-                        // query is not a direct link, so search by id
+                        // query is prob not a direct link, so search by id
                         /**
                          * need to search:
                          * desk locations
@@ -227,38 +246,61 @@ package structs {
          * @param location_link the location link to navigate to.
          * @return `Boolean`
          */
-        public function navigate_to(location_link:String):Boolean {
-            var navigable:Boolean = test_path(location_link);
+        public function test_path(location_link:String):Boolean {
+            var navigable:Boolean = get_location(location_link);
 
-            if (navigable) {
-                // full path exists, no need for path checking methods
-                var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
+            var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
 
-                var building_id:String = link_elements[1];
-                var floor_id:String = link_elements[2];
-                var subsection_id:String = link_elements[3];
-                var item_id:String = link_elements[4];
+            // if the link matches the proper format, lets break it down and double check
+            if (link_elements.length) {
+                var building_id:String = link_elements[1] ? link_elements[1] : '';
+                var floor_id:String = link_elements[2] ? link_elements[2] : '';
+                var subsection_id:String = link_elements[3] ? link_elements[3] : '';
+                var item_id:String = link_elements[4] ? link_elements[4] : '';
 
-                _current_location.id = building_id;
-
-                if (floor_id) {
-                    var fl:Floor = get_floor(floor_id);
-                    _current_location.floor_id = floor_id;
+                // at minimum, we need a building and a floor, since we can't display anything less than a floor map
+                if (!_buildings.has(building_id)) {
+                    return null;
+                } else {
+                    var bldg:Building = _buildings.pull(building_id) as Building;
+                    // if the link is looking for a floor, and the floor id is valid... 
+                    if (floor_id && bldg.has_floor(floor_id)) {
+                        var fl:Floor = bldg.get_floor(floor_id);
+                        // ...and the floor has a subsection and the subsection id is valid...
+                        if (subsection_id && fl.has_subsection(subsection_id)) {
+                            var ss:Subsection = fl.get_subsection(subsection_id);
+                            // and the subsection has an item and the item id is valid...
+                            if (item_id && ss.has_item(item_id)) {
+                                // then the link is fully resolvable!
+                                set_resolution_index(1, 1, 1, 1);
+                                return true;
+                            } else {
+                                // otherwise, the link is resolvable up to the subsection at least!
+                                set_resolution_index(1, 1, 1, 0);
+                                return true;
+                            }
+                        } else {
+                            // otherwise, the link is resolvable up to the floor at least!
+                            set_resolution_index(1, 1, 0, 0);
+                            return true;
+                        }
+                    } else {
+                        // otherwise, the building is resolvable, but that's not enough :(
+                        set_resolution_index(1, 0, 0, 0);
+                        return false;
+                    }
                 }
-
-                if (subsection_id) {
-                    var ss:Subsection = fl.get_subsection(subsection_id);
-                    _current_location.subsection_id = subsection_id;
-                }
-
-                if (item_id) {
-                    _current_location.item_id = item_id;
-                }
-
-                return true;
             }
-            // does not exist, throw error
+            // otherwise we have nothing. all is lost.
+            set_resolution_index(0, 0, 0, 0);
             return false;
+        }
+
+        private function set_resolution_index(building:int, floor:int, subsection:int, item:int):void {
+            _PATH_RESOLUTION_INDEX[0] = building;
+            _PATH_RESOLUTION_INDEX[1] = floor;
+            _PATH_RESOLUTION_INDEX[2] = subsection;
+            _PATH_RESOLUTION_INDEX[3] = item;
         }
 
         /**
@@ -266,7 +308,7 @@ package structs {
          * @param location_link the location link in the format `BLDG_FL_SS_ITM`.
          * @return `MappableItem | null`
          */
-        public function test_path(location_link:String):MappableItem {
+        public function get_location(location_link:String):MappableItem {
             var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
 
             if (link_elements.length) {
@@ -361,12 +403,15 @@ package structs {
          * @param json
          */
         public function read_json(json:Object):void {
-            _buildings.iterate(function destroy_all(key:String, item:Building):void {
-                item.destroy();
-                delete _buildings[key];
-            });
+            // if there is a current location, then data is already loaded into the app. reset the values in memory and prepare the variables to be written again
+            if (_current_location) {
+                _buildings.iterate(function destroy_all(key:String, item:Building):void {
+                    item.destroy();
+                    delete _buildings[key];
+                });
 
-            MappableItem.destroy_lookups();
+                MappableItem.destroy_lookups();
+            }
 
             for (var key:String in json.buildings) {
                 var building_raw:Object = json.buildings[key];
@@ -376,6 +421,8 @@ package structs {
 
             if (json.last_location) {
                 set_location(json.last_location as String);
+            } else {
+                set_location(json.default_location as String);
             }
 
             if (json.panned) {
@@ -457,27 +504,36 @@ package structs {
             _item_detail_dialog.open();
         }
 
-        private function display_map(floor_link:String):void {
+        private function display_map():void {
+            _bitmap_data_cache ||= new Dictionary();
 
-            var floor_map_png:File = _ASSET_IMAGE_FOLDER.resolvePath(_current_location.id).resolvePath(_current_location.floor_id + ".png");
-
-            if (!floor_map_png.exists) {
-                DebugDaemon.write_log("cannot display map: the floor map image does not exist: %s.\n" + "the file may be corrupted; try reinstalling.", DebugDaemon.ERROR_IO, floor_map_png.nativePath);
-                return;
+            if (_bitmap_data_cache[_current_location.floor_id]) {
+                _current_map_image.bitmapData = _bitmap_data_cache[_current_location.floor_id] as BitmapData;
 
             } else {
+                var floor_map_png:File = _ASSET_IMAGE_FOLDER.resolvePath(_current_location.id).resolvePath(_current_location.floor_id + ".png");
 
-                if (_current_map_image && _current_map_image.parent) {
-                    _image_container.removeChild(_current_map_image);
+                if (!floor_map_png.exists) {
+                    DebugDaemon.write_error("cannot display map: the floor map image does not exist: %s.\n" + "the file may be corrupted; try reinstalling.", floor_map_png.nativePath);
+                    return;
+
+                } else {
+
+                    if (_current_map_image && _current_map_image.parent) {
+                        _image_container.removeChild(_current_map_image);
+                    }
+
+                    var img_req:URL = new URL(floor_map_png.nativePath);
+                    img_req.use_port = false;
+                    img_req.expected_data_type = URL.GRAPHICS;
+                    _image_loader.ON_COMPLETE_GRAPHIC.add(on_image);
+                    _image_loader.queue_files(img_req);
                 }
-
-                // TODO: load png data into _current_map_image and display centered
-                var img_req:URL = new URL(floor_map_png.nativePath);
-                img_req.use_port = false;
-                img_req.expected_data_type = URL.GRAPHICS;
-                _image_loader.ON_COMPLETE_GRAPHIC.add(on_image);
-                _image_loader.queue_files(img_req);
             }
+
+
+
+
 
         }
 
@@ -496,33 +552,6 @@ package structs {
             }
 
             return closeTerms;
-        }
-
-        /**
-         * /// TODO: documentation
-         * @param search_string
-         * @returns
-         */
-        private function resolve_link(location_link:String):Building {
-            var resolvable:Boolean = navigate_to(location_link);
-
-            var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
-
-            if (link_elements.length) {
-                var building_id:String = link_elements[1] ? link_elements[1] : '';
-                var floor_id:String = link_elements[2] ? link_elements[2] : '';
-                var subsection_id:String = link_elements[3] ? link_elements[3] : '';
-                var item_id:String = link_elements[4] ? link_elements[4] : '';
-
-                var location:Building = new Building();
-                location.id = building_id;
-                location.floor_id = floor_id;
-                location.subsection_id = subsection_id;
-                location.item_id = item_id;
-                return location;
-            }
-
-            return null;
         }
 
         /**
@@ -664,10 +693,9 @@ package structs {
         // * DELEGATES * //
 
         private function on_image(loaded_image:Bitmap):void {
-
-            if (!_image_mask) {
-                _image_mask = new Sprite();
-            }
+            // if the image was loaded, then it wasn't in the bmd cache, so put it there
+            _bitmap_data_cache[_current_location.floor_id] = loaded_image.bitmapData;
+            _image_mask ||= new Sprite();
 
             if (!_context_menu.has_context(Contexts.CONTEXT_MAP_GENERAL)) {
                 // register contexts for context menu
@@ -802,7 +830,6 @@ package structs {
             _image_mask.width = stage.stageWidth;
             _image_mask.height = stage.stageHeight;
         }
-
     }
 
 }

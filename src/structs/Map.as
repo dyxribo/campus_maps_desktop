@@ -2,9 +2,9 @@ package structs {
 
     import avmplus.getQualifiedClassName;
 
-    import debug.DebugDaemon;
-
     import flash.utils.Dictionary;
+
+    import net.blaxstar.starlib.debug.DebugDaemon;
 
     public class Map {
         private var key_type:Class;
@@ -13,6 +13,7 @@ package structs {
         private var _dict_size:uint;
         private var _overwrite:Boolean;
 
+        // TODO: REMOVE DEBUG STUFF
         public function Map(key_class:Class, val_class:Class) {
             key_type = key_class;
             val_type = val_class;
@@ -35,7 +36,7 @@ package structs {
                 }
             } else {
                 // INCORRECT TYPE(S)
-                DebugDaemon.write_log("error when putting object in Map: incorrect types were provided. " + "\nexpected: <%s, %s>; got: <%s, %s>", DebugDaemon.ERROR_MISUSE, key_type, val_type, getQualifiedClassName(key), getQualifiedClassName(value));
+                DebugDaemon.write_error("error when putting object in Map: incorrect types were provided. " + "\nexpected: <%s, %s>; got: <%s, %s>", key_type, val_type, getQualifiedClassName(key), getQualifiedClassName(value));
             }
         }
 

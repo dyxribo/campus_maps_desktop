@@ -1,9 +1,8 @@
 package structs {
-    import debug.DebugDaemon;
-
     import flash.utils.Dictionary;
 
-    import geom.Point;
+    import net.blaxstar.starlib.debug.DebugDaemon;
+
     import structs.Location;
 
     public class Floor extends Subsection {
@@ -12,6 +11,7 @@ package structs {
         private var _on_single_vlan:Boolean;
         private var _floor_id:String;
 
+        // TODO: REMOVE DEBUG STUFF
         public function Floor() {
             super();
             this.id = "flr" + Location.temp_assignments++;

@@ -1,14 +1,14 @@
 package structs {
-    import debug.DebugDaemon;
-
     import flash.utils.Dictionary;
 
+    import net.blaxstar.starlib.debug.DebugDaemon;
+
     import structs.Location;
-    import structs.MappableUser;
     import structs.MappableDesk;
     import structs.MappableItem;
-    import structs.MappableWorkstation;
     import structs.MappablePrinter;
+    import structs.MappableUser;
+    import structs.MappableWorkstation;
     import structs.WallJack;
     import structs.WallPlate;
 
@@ -17,6 +17,7 @@ package structs {
         private var _items:Map;
         private var _subsection_id:String;
 
+        // TODO: REMOVE DEBUG STUFF
         public function Subsection() {
             super();
             this.id = "sbsc" + Location.temp_assignments++;
