@@ -7,19 +7,19 @@ package {
     import flash.display.StageScaleMode;
     import flash.events.Event;
     import flash.events.MouseEvent;
+    import flash.filesystem.File;
 
     import net.blaxstar.starlib.components.Button;
     import net.blaxstar.starlib.components.Card;
     import net.blaxstar.starlib.components.Dialog;
     import net.blaxstar.starlib.components.InputTextField;
+    import net.blaxstar.starlib.debug.DebugDaemon;
     import net.blaxstar.starlib.io.URL;
     import net.blaxstar.starlib.networking.APIRequestManager;
     import net.blaxstar.starlib.style.Font;
     import net.blaxstar.starlib.style.Style;
 
-    import structs.ItemMap;
-    import net.blaxstar.starlib.debug.DebugDaemon;
-    import flash.filesystem.File;
+    import views.map.ItemMap;
 
     /**
      * TODO: documentation
@@ -79,7 +79,7 @@ package {
 
         private function on_login_form_submit(e:MouseEvent):void {
             DebugDaemon.write_debug("attempting to connect to sql server as %s...", _db_login_username_field.text);
-            // submit form
+            // TODO: submit form to api endpoint, wait for response
             _apiman.expected_data_type = URL.TEXT;
             _apiman.use_port = false;
             _apiman.on_result_signal.add(on_login_result);

@@ -1,6 +1,6 @@
-package structs {
+package structs.location {
   import geom.Point;
-  import structs.AssignableItem;
+  import structs.location.AssignableItem;
 
   public class MappableMachine extends AssignableItem {
 

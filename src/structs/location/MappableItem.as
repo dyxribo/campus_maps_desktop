@@ -1,10 +1,11 @@
-package structs {
+package structs.location {
     import geom.Point;
-    import structs.Location;
-    import net.blaxstar.starlib.components.LED;
-    import net.blaxstar.starlib.style.Style;
-    import net.blaxstar.starlib.style.Color;
+
     import modules.Pin;
+
+    import net.blaxstar.starlib.style.Color;
+
+    import structs.Map;
 
     public class MappableItem extends Location {
 

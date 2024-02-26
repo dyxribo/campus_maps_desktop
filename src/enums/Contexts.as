@@ -1,4 +1,4 @@
-package structs {
+package enums {
   public class Contexts {
     // contexts
     public static var CONTEXT_MAP_GENERAL:String = "map_general";

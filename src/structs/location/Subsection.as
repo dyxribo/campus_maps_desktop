@@ -1,19 +1,13 @@
-package structs {
+package structs.location {
     import flash.utils.Dictionary;
 
     import net.blaxstar.starlib.debug.DebugDaemon;
 
-    import structs.Location;
-    import structs.MappableDesk;
-    import structs.MappableItem;
-    import structs.MappablePrinter;
-    import structs.MappableUser;
-    import structs.MappableWorkstation;
-    import structs.WallJack;
-    import structs.WallPlate;
+    import structs.Map;
+    import geom.Point;
 
     public class Subsection extends MappableItem {
-        //private var _bounds:Polygon;
+        private var _registration_point:Point;
         private var _items:Map;
         private var _subsection_id:String;
 
@@ -62,6 +56,7 @@ package structs {
             subsection.id = json.id;
             subsection._items = new Map(String, MappableItem);
             subsection.prefix = json.prefix;
+            subsection.set_registration_point(json.registration_point.x, json.registration_point.y);
 
             for (var key:Object in json.items) {
                 var current_item:Object = json.items[key];
@@ -96,8 +91,8 @@ package structs {
 
         override public function write_json():Object {
             var items_json:Object = {};
-            // Object.defineProperty(json, 'bounds', this.bounds.build_json());
             var items_dict:Dictionary = _items.get_dictionary();
+            var registration_point_json:Object = _registration_point.write_json();
             for (var key:Object in items_dict) {
 
                 items_json[key] = items_dict[key].write_json();
@@ -105,6 +100,7 @@ package structs {
             var json:Object = super.write_json();
             json.items = items_json;
             json.prefix = prefix;
+            json.registation_point = registration_point_json;
             return json;
         }
 
@@ -124,6 +120,16 @@ package structs {
 
         public function set subsection_id(value:String):void {
             _subsection_id = value;
+        }
+
+        public function get_registration_point():Point {
+            return _registration_point;
+        }
+
+        public function set_registration_point(x:int,y:int):void {
+            _registration_point ||= new Point(0,0);
+            _registration_point.x = x;
+            _registration_point.y = y;
         }
 
         override public function get link():String {

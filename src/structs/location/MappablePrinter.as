@@ -1,5 +1,5 @@
-package structs {
-    import structs.MappableMachine;
+package structs.location {
+
 
     public class MappablePrinter extends MappableMachine {
 

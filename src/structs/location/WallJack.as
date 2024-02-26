@@ -1,6 +1,5 @@
-package structs {
+package structs.location {
     import geom.Point;
-    import structs.MappableItem;
 
     public class WallJack extends MappableItem {
 

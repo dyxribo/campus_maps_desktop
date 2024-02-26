@@ -1,9 +1,9 @@
-package structs {
+package structs.location {
     import flash.utils.Dictionary;
 
     import net.blaxstar.starlib.debug.DebugDaemon;
 
-    import structs.Location;
+    import structs.Map;
 
     public class Floor extends Subsection {
 

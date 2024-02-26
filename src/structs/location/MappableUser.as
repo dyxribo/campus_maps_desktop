@@ -1,11 +1,11 @@
-package structs {
+package structs.location {
     import flash.utils.Dictionary;
 
     import geom.Point;
 
     import net.blaxstar.starlib.debug.DebugDaemon;
 
-    import structs.MappableItem;
+    import structs.Map;
     import structs.workhours.WorkHours;
 
     public class MappableUser extends MappableItem {

@@ -1,7 +1,8 @@
-package structs {
+package structs.location {
     import flash.utils.Dictionary;
 
     import net.blaxstar.starlib.debug.DebugDaemon;
+    import structs.Map;
 
     public class Building extends Floor {
         private const _LOCATION_LINK_PATTERN:RegExp = /^([a-zA-Z0-9]+)(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?$/;

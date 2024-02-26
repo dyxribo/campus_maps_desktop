@@ -1,7 +1,8 @@
-package structs {
+package views.map {
     import config.SaveData;
 
     import flash.display.Bitmap;
+    import flash.display.BitmapData;
     import flash.display.Graphics;
     import flash.display.Sprite;
     import flash.events.Event;
@@ -25,17 +26,25 @@ package structs {
     import net.blaxstar.starlib.io.XLoader;
     import net.blaxstar.starlib.utils.StringUtil;
 
+    import structs.Map;
+    import structs.location.Building;
+    import structs.location.Floor;
+    import structs.location.MappableDesk;
+    import structs.location.MappableItem;
+    import structs.location.MappablePrinter;
+    import structs.location.MappableUser;
+    import structs.location.MappableWorkstation;
+    import structs.location.Subsection;
+
     import thirdparty.com.greensock.TweenLite;
     import thirdparty.org.osflash.signals.natives.NativeSignal;
 
     import views.dialog.BaseDialogView;
     import views.dialog.DeskDialogView;
-    import thirdparty.org.osflash.signals.Signal;
-    import flash.display.BitmapData;
+    import enums.Contexts;
 
     /**
-     * TODO: documentation
-     * TODO: REMOVE DEBUG STUFF
+     * TODO: documentation, general cleanup, REMOVE DEBUG STUFF
      */
     public class ItemMap extends Sprite {
         public static const SEARCH_DESK:uint = 0;
@@ -263,7 +272,7 @@ package structs {
                     return null;
                 } else {
                     var bldg:Building = _buildings.pull(building_id) as Building;
-                    // if the link is looking for a floor, and the floor id is valid... 
+                    // if the link is looking for a floor, and the floor id is valid...
                     if (floor_id && bldg.has_floor(floor_id)) {
                         var fl:Floor = bldg.get_floor(floor_id);
                         // ...and the floor has a subsection and the subsection id is valid...

@@ -1,7 +1,7 @@
-package structs {
+package structs.location {
     import flash.utils.Dictionary;
 
-    import geom.Point;
+    import structs.Map;
 
     public class WallPlate extends MappableItem {
         static private var _plate_lookup:Map;
