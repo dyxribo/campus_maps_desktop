@@ -57,6 +57,17 @@ package structs.location {
             return this._floors.has(id);
         }
 
+        public function get current_floor():Floor {
+            return has_floor(this.floor_id) ? get_floor(this.floor_id) : undefined;
+        }
+
+        public function get current_subsection():Subsection {
+            return current_floor ? current_floor.get_subsection(this.subsection_id) : undefined;
+        }
+
+        public function get current_item():MappableItem {
+            return current_subsection ? current_subsection.get_item(this.item_id) : undefined;
+        }
 
         public function get floors():Map {
             return this._floors;
@@ -64,6 +75,23 @@ package structs.location {
 
         public function set floors(value:Map):void {
             this._floors = value;
+        }
+
+        override public function get_subsection(subsection:String):Subsection {
+            var current_floor:Floor = get_floor(floor_id);
+            if (current_floor && current_floor.has_subsection(subsection)) {
+                return current_floor.get_subsection(subsection);
+            }
+            return undefined;
+        }
+
+        override public function get_item(item:String):MappableItem {
+            var current_floor:Floor = get_floor(floor_id);
+            var current_subsection:Subsection = current_floor.get_subsection(subsection_id);
+            if (current_subsection && current_subsection.has_item(item)) {
+                return current_subsection.get_item(item);
+            }
+            return undefined;
         }
 
         static public function read_json(json:Object):Building {

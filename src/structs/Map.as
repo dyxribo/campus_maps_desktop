@@ -80,12 +80,12 @@ package structs {
             for (var i:uint = 0; i < param.length; i++) {
                 var current_tuple:Array = param[i];
                 if (current_tuple.length != 2) {
-                    DebugDaemon.write_log("error creating Map from Literal Object (array item number %s): " + "the format is incorrect. " + "valid input is an array of tuples.", DebugDaemon.WARN, i);
+                    DebugDaemon.write_warning("error creating Map from Literal Object (array item number %s): " + "the format is incorrect. " + "valid input is an array of tuples.", i);
                 } else {
                     if (validate(current_tuple[0], current_tuple[1])) {
                         put(current_tuple[0], current_tuple[1]);
                     } else {
-                        DebugDaemon.write_log("could not add literal key/value pair to map: the one of the " + "parameter types are incorrect.");
+                        DebugDaemon.write_error("could not add literal key/value pair to map (array item %s: [%s, %s]): the one of the parameter types are incorrect.", i, current_tuple[0], current_tuple[1]);
                     }
                 }
             }

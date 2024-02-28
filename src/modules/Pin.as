@@ -1,7 +1,9 @@
 package modules {
-    import net.blaxstar.starlib.components.LED;
-    import structs.MappableItem;
     import flash.display.DisplayObjectContainer;
+
+    import net.blaxstar.starlib.components.LED;
+
+    import structs.location.MappableItem;
 
     public class Pin extends LED {
         private var _linked_item:MappableItem;

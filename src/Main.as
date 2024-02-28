@@ -19,7 +19,9 @@ package {
     import net.blaxstar.starlib.style.Font;
     import net.blaxstar.starlib.style.Style;
 
-    import views.map.ItemMap;
+    import views.map.MapView;
+    import models.MapModel;
+    import controllers.MapController;
 
     /**
      * TODO: documentation
@@ -34,7 +36,9 @@ package {
         private var _db_login_password_field:InputTextField;
         private var _db_login_submit_button:Button;
 
-        private var _item_map:ItemMap;
+        private var _map_model:MapModel;
+        private var _map_view:MapView;
+        private var _map_controller:MapController;
         private var _apiman:APIRequestManager;
         private var _savedata:SaveData;
 
@@ -92,18 +96,21 @@ package {
         }
 
         private function init_map(json:Object):void {
-            init_map_display();
+            _map_model = new MapModel();
+            _map_view = new MapView(stage);
+            _map_controller = new MapController(_map_model, _map_view);
+
             load_campus_data(json);
+            init_map_display();
         }
 
         private function init_map_display():void {
-            _item_map = new ItemMap(_savedata);
-            addChild(_item_map);
+            addChild(_map_view);
         }
 
         private function load_campus_data(json:Object):void {
             // TODO: load app_db. initial sync of pc and usr json with api, integrating it with app_db. sync occasionally. if file changes, loop through users and machines to see what's new.
-            _item_map.read_json(json);
+            _map_model.read_json(json);
         }
 
 

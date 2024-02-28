@@ -20,7 +20,11 @@
               },
               "prefix": "32OS_11F",
               "position": { "y": 0, "x": 0 },
-              "id": "WEST"
+              "id": "WEST",
+              "registration_point": {
+                "x": 100,
+                "y": 100
+              }
             }
           },
           "position": { "y": 0, "x": 0 }
