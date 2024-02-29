@@ -54,7 +54,7 @@ package structs.location {
                 _jacks.toss(jack_id);
                 return true;
             } else {
-                // TODO: error removing jack
+                // TODO: write error
                 return false;
             }
         }
