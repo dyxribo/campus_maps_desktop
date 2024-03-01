@@ -85,9 +85,8 @@ package {
             DebugDaemon.write_debug("attempting to connect to sql server as %s...", _db_login_username_field.text);
             // TODO: submit form to api endpoint, wait for response
             _apiman.data_format = URL.DATA_FORMAT_TEXT;
-            _apiman.use_port = false;
             _apiman.on_result_signal.add(on_login_result);
-            _apiman.send_https_request("https://google.com");
+            _apiman.send_https_request("www.google.com");
             //File.applicationDirectory.resolvePath('data').resolvePath('app_db.json').nativePath
             // wait for response
 

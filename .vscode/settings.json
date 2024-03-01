@@ -1,5 +1,5 @@
 {
-  "as3mxml.sdk.framework": "c:\\harman_air",
+  "as3mxml.sdk.framework": "c:\\airsdk",
   "[python]": {
     "editor.defaultFormatter": "ms-python.autopep8"
   },
