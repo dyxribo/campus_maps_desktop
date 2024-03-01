@@ -84,11 +84,13 @@ package {
         private function on_login_form_submit(e:MouseEvent):void {
             DebugDaemon.write_debug("attempting to connect to sql server as %s...", _db_login_username_field.text);
             // TODO: submit form to api endpoint, wait for response
-            _apiman.expected_data_type = URL.TEXT;
+            _apiman.data_format = URL.DATA_FORMAT_TEXT;
             _apiman.use_port = false;
             _apiman.on_result_signal.add(on_login_result);
-            _apiman.query(File.applicationDirectory.resolvePath('data').resolvePath('app_db.json').nativePath);
+            _apiman.send_https_request("https://google.com");
+            //File.applicationDirectory.resolvePath('data').resolvePath('app_db.json').nativePath
             // wait for response
+
         }
 
         private function on_login_result(result:String):void {

@@ -41,7 +41,7 @@ package controllers {
 
             var img_req:URL = new URL(floor_map_png.nativePath);
             img_req.use_port = false;
-            img_req.expected_data_type = URL.GRAPHICS;
+            img_req.data_format = URL.DATA_FORMAT_GRAPHICS;
             _image_loader.ON_COMPLETE_GRAPHIC.add(on_image);
             _image_loader.queue_files(img_req);
         }
