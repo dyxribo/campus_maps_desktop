@@ -87,6 +87,7 @@ package {
             _apiman.data_format = URL.DATA_FORMAT_TEXT;
             _apiman.on_result_signal.add(on_login_result);
             _apiman.send_https_request("www.google.com");
+            // TODO: credentials; basic with hashing & token: https://github.com/charlesbihis/actionscript-oauth2
             //File.applicationDirectory.resolvePath('data').resolvePath('app_db.json').nativePath
             // wait for response
 
