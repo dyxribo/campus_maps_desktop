@@ -93,7 +93,6 @@ package views.map {
             addChild(_image_container);
             addChild(_image_mask);
             _item_detail_dialog.close();
-            _item_detail_dialog.auto_resize = true;
             //_item_detail_dialog.height = 300;
 
             _item_detail_dialog.addOption("close", _item_detail_dialog.close, Button.DEPRESSED);
@@ -118,10 +117,10 @@ package views.map {
                     d.set_name_field(assoc_item.id);
                     d.set_location_field(assoc_item.link);
                     d.set_assignee_field((assoc_item as MappableDesk).assignee);
+                    _item_detail_dialog.message = '';
                     _item_detail_dialog.add_component(d);
                     _item_detail_dialog.auto_resize = true;
                     _item_detail_dialog.title = assoc_item.id + " properties";
-                    _item_detail_dialog.message = '';
                     _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
                     // TODO: add edit button to dialog in order to modify props. this needs to be authenticated, though.
                     break;

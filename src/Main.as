@@ -22,25 +22,31 @@ package {
     import views.map.MapView;
     import models.MapModel;
     import controllers.MapController;
+    import com.sociodox.utils.Base64;
+    import net.blaxstar.starlib.utils.StringUtil;
+    import flash.filesystem.FileStream;
+    import flash.filesystem.FileMode;
 
     /**
      * TODO: documentation
      */
     public class Main extends Sprite {
+        private const _MAP_DATA_FILEPATH:String = File.applicationDirectory.resolvePath('data').resolvePath('app_db.json').nativePath;
+        // search
         private var _search_bar:InputTextField;
         private var _search_bar_card:Card;
-
         // DB login controls
         private var _db_login_prompt:Dialog;
         private var _db_login_username_field:InputTextField;
         private var _db_login_password_field:InputTextField;
         private var _db_login_submit_button:Button;
-
+        // map
         private var _map_model:MapModel;
         private var _map_view:MapView;
         private var _map_controller:MapController;
         private var _apiman:APIRequestManager;
         private var _savedata:SaveData;
+        private var _filestream:FileStream;
 
 
         public function Main() {
@@ -59,9 +65,10 @@ package {
             _savedata = new SaveData();
             stage.nativeWindow.title = _savedata.application_title_extended;
             _apiman = new APIRequestManager();
+            _filestream = new FileStream();
 
-            begin_auth();
-            //init_map();
+            //begin_auth();
+            load_map_data();
         }
 
         private function begin_auth():void {
@@ -82,19 +89,40 @@ package {
         }
 
         private function on_login_form_submit(e:MouseEvent):void {
-            DebugDaemon.write_debug("attempting to connect to sql server as %s...", _db_login_username_field.text);
-            // TODO: submit form to api endpoint, wait for response
+            DebugDaemon.write_debug("attempting to connect to server as %s...", _db_login_username_field.text);
+            // TODO: submit form to api endpoint, wait for response. exclusively for syncing asset data and updates from the server.
             _apiman.data_format = URL.DATA_FORMAT_TEXT;
-            _apiman.on_result_signal.add(on_login_result);
-            _apiman.send_https_request("www.google.com");
+            _apiman.fake_signal.add(test_on_login_result);
+            _apiman.send_https_request("daiwa.test.com");
             // TODO: credentials; basic with hashing & token: https://github.com/charlesbihis/actionscript-oauth2
-            //File.applicationDirectory.resolvePath('data').resolvePath('app_db.json').nativePath
-            // wait for response
+        }
+
+        private function test_on_login_result(result:String):void {
+            var decoded_response:String = Base64.decode(result).toString()
+            if (!StringUtil.is_empty_or_null(decoded_response)) {
+                login_success(result);
+
+            } else {
+                login_failure(result)
+            }
+
+            init_map(JSON.parse(result));
+        }
+
+        private function login_success(response:Object):void {
 
         }
 
-        private function on_login_result(result:String):void {
-            init_map(JSON.parse(result));
+        private function login_failure(response:Object):void {
+
+        }
+
+        private function load_map_data():void {
+            var map_data:String;
+            _filestream.open(new File(_MAP_DATA_FILEPATH), FileMode.UPDATE);
+            map_data = _filestream.readUTFBytes(_filestream.bytesAvailable);
+            _filestream.close();
+            init_map(JSON.parse(map_data));
         }
 
         private function init_map(json:Object):void {
