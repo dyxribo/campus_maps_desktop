@@ -50,6 +50,8 @@ package views.map {
 
 
         private var _item_detail_dialog:Dialog;
+        private var _detail_dialog_view:BaseDialogView;
+        private var _dialog_view_cache:Dictionary;
         private var _target_pin:Pin;
         private var _is_dragging_map:Boolean;
 
@@ -83,6 +85,7 @@ package views.map {
             _image_mask = new Sprite();
             //_searchbar = new Searchbar();
             _item_detail_dialog = new Dialog(this);
+            _dialog_view_cache = new Dictionary(true);
             _context_menu = new ContextMenu();
 
             add_children();
@@ -95,7 +98,7 @@ package views.map {
             _item_detail_dialog.close();
             //_item_detail_dialog.height = 300;
 
-            _item_detail_dialog.addOption("close", _item_detail_dialog.close, Button.DEPRESSED);
+            _item_detail_dialog.add_button("close", _item_detail_dialog.close, Button.DEPRESSED);
         }
 
         private function on_pin_click(e:MouseEvent):void {
@@ -108,19 +111,21 @@ package views.map {
                     _item_detail_dialog.component_container.removeChildren();
                 }
             }
+            _detail_dialog_view = item_in_cache(assoc_item);
             switch (assoc_item.type) {
-
                 case MappableItem.ITEM_DESK:
-                    var d:DeskDialogView = new DeskDialogView();
-
-                    d.is_adjustable = (assoc_item as MappableDesk).is_adjustable;
-                    d.set_name_field(assoc_item.id);
-                    d.set_location_field(assoc_item.link);
-                    d.set_assignee_field((assoc_item as MappableDesk).assignee);
+                    if (!_detail_dialog_view) {
+                        _dialog_view_cache[assoc_item.id] = new DeskDialogView();
+                        _detail_dialog_view = _dialog_view_cache[assoc_item.id];
+                    }
+                    (_detail_dialog_view as DeskDialogView).is_adjustable = (assoc_item as MappableDesk).is_adjustable;
+                    _detail_dialog_view.set_name_field(assoc_item.id);
+                    _detail_dialog_view.set_location_field(assoc_item.link);
+                    _detail_dialog_view.set_assignee_field((assoc_item as MappableDesk).assignee);
                     _item_detail_dialog.message = '';
-                    _item_detail_dialog.add_component(d);
                     _item_detail_dialog.auto_resize = true;
                     _item_detail_dialog.title = assoc_item.id + " properties";
+                    _item_detail_dialog.add_component(_detail_dialog_view);
                     _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
                     // TODO: add edit button to dialog in order to modify props. this needs to be authenticated, though.
                     break;
@@ -147,9 +152,14 @@ package views.map {
              *
              * * = can wait for implementation
              */
-            // ! TODO: dialog not appearing, position may be incorrect.
-            // ! maybe refactor itemmap?
             _item_detail_dialog.open();
+        }
+
+        private function item_in_cache(item:MappableItem):BaseDialogView {
+            if (_dialog_view_cache[item.id]) {
+                return _dialog_view_cache[item.id];
+            }
+            return null;
         }
 
         public function add_pin(pin:Pin):void {
