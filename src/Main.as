@@ -32,6 +32,7 @@ package {
      */
     public class Main extends Sprite {
         private const _MAP_DATA_FILEPATH:String = File.applicationDirectory.resolvePath('data').resolvePath('app_db.json').nativePath;
+
         // search
         private var _search_bar:InputTextField;
         private var _search_bar_card:Card;
@@ -63,12 +64,14 @@ package {
             Font.init();
 
             _savedata = new SaveData();
+            _savedata.ON_LOAD.add(load_map_data);
+
             stage.nativeWindow.title = _savedata.application_title_extended;
             _apiman = new APIRequestManager();
             _filestream = new FileStream();
+            _savedata.load();
 
             //begin_auth();
-            load_map_data();
         }
 
         private function begin_auth():void {
@@ -118,8 +121,9 @@ package {
         }
 
         private function load_map_data():void {
+            var map_data_file:File = new File(_MAP_DATA_FILEPATH);
             var map_data:String;
-            _filestream.open(new File(_MAP_DATA_FILEPATH), FileMode.UPDATE);
+            _filestream.open(map_data_file, FileMode.READ);
             map_data = _filestream.readUTFBytes(_filestream.bytesAvailable);
             _filestream.close();
             init_map(JSON.parse(map_data));

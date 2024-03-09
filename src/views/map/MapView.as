@@ -1,9 +1,13 @@
 package views.map {
+    import app.interfaces.IMapImageLoaderObserver;
+    import app.interfaces.IObserver;
+
     import enums.Contexts;
 
-    import flash.display.BitmapData;
+    import flash.display.Bitmap;
     import flash.display.Graphics;
     import flash.display.Sprite;
+    import flash.display.Stage;
     import flash.events.Event;
     import flash.events.MouseEvent;
     import flash.events.NativeWindowBoundsEvent;
@@ -19,7 +23,6 @@ package views.map {
     import net.blaxstar.starlib.components.Dialog;
     import net.blaxstar.starlib.components.ListItem;
     import net.blaxstar.starlib.debug.DebugDaemon;
-    import net.blaxstar.starlib.io.URL;
 
     import structs.location.MappableDesk;
     import structs.location.MappableItem;
@@ -29,10 +32,6 @@ package views.map {
 
     import views.dialog.BaseDialogView;
     import views.dialog.DeskDialogView;
-    import app.interfaces.IObserver;
-    import app.interfaces.IMapImageLoaderObserver;
-    import flash.display.Bitmap;
-    import flash.display.Stage;
 
     /**
      * TODO: documentation, general cleanup, REMOVE DEBUG STUFF
@@ -122,6 +121,7 @@ package views.map {
                     _detail_dialog_view.set_name_field(assoc_item.id);
                     _detail_dialog_view.set_location_field(assoc_item.link);
                     _detail_dialog_view.set_assignee_field((assoc_item as MappableDesk).assignee);
+                    _detail_dialog_view.parent_dialog = _item_detail_dialog;
                     _item_detail_dialog.message = '';
                     _item_detail_dialog.auto_resize = true;
                     _item_detail_dialog.title = assoc_item.id + " properties";
@@ -257,7 +257,8 @@ package views.map {
              */
             // set default contexts
             for (var i:int = contexts.length - 1; i > -1; i--) {
-                _context_menu.add_context_array(contexts[i], contexts[i][0], on_context_click);
+                var context:String = contexts[i].pop();
+                _context_menu.add_context_array(contexts[i], context, on_context_click);
             }
 
             _context_menu.set_context(Contexts.CONTEXT_MAP_GENERAL);

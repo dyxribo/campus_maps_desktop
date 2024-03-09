@@ -1,16 +1,20 @@
 package controllers {
-    import models.MapModel;
-    import views.map.MapView;
-    import net.blaxstar.starlib.io.URL;
-    import flash.filesystem.File;
-    import net.blaxstar.starlib.io.XLoader;
-    import flash.display.Bitmap;
-    import enums.Contexts;
-    import app.interfaces.IMapImageLoaderSubject;
-    import app.interfaces.ISubject;
     import app.interfaces.IMapImageLoaderObserver;
-    import flash.utils.Dictionary;
+    import app.interfaces.IMapImageLoaderSubject;
+
+    import enums.Contexts;
+
+    import flash.display.Bitmap;
+    import flash.filesystem.File;
     import flash.geom.Matrix;
+    import flash.utils.Dictionary;
+
+    import models.MapModel;
+
+    import net.blaxstar.starlib.io.URL;
+    import net.blaxstar.starlib.io.XLoader;
+
+    import views.map.MapView;
 
     public class MapController implements IMapImageLoaderSubject {
         private const _OBSERVER_LIST:Vector.<IMapImageLoaderObserver> = new Vector.<IMapImageLoaderObserver>();
@@ -52,13 +56,13 @@ package controllers {
 
             if (!_view.context_menu.has_context(Contexts.CONTEXT_MAP_GENERAL)) {
                 // register contexts for context menu
-                var context_map_general:Array = [Contexts.CONTEXT_MAP_GENERAL, Contexts.CONTEXT_MAP_GENERAL_ADD_ITEM,
-                    Contexts.CONTEXT_MAP_GENERAL_CREATE_PATH];
+                var context_map_general:Array = [Contexts.CONTEXT_MAP_GENERAL_ADD_ITEM,
+                    Contexts.CONTEXT_MAP_GENERAL_CREATE_PATH, Contexts.CONTEXT_MAP_GENERAL];
 
-                var context_map_item:Array = [Contexts.CONTEXT_MAP_ITEM, Contexts.CONTEXT_MAP_ITEM_RENAME_ITEM,
+                var context_map_item:Array = [ Contexts.CONTEXT_MAP_ITEM_RENAME_ITEM,
                     Contexts.CONTEXT_MAP_ITEM_MOVE_ITEM,
                     Contexts.CONTEXT_MAP_ITEM_ARCHIVE_ITEM,
-                    Contexts.CONTEXT_MAP_ITEM_DELETE_ITEM];
+                    Contexts.CONTEXT_MAP_ITEM_DELETE_ITEM,Contexts.CONTEXT_MAP_ITEM];
 
 
                 _view.init_context_menu([context_map_general, context_map_item]);

@@ -12,12 +12,12 @@ package structs.location {
         }
 
         static public function read_json(json:Object):MappableDesk {
-            var item:MappableDesk = new MappableDesk();
-            item.id = json.id;
-            item.position = Point.read_json(json.position);
-            item.assignee = json.assignee;
-
-            return item;
+            var desk:MappableDesk = new MappableDesk();
+            desk.id = json.id;
+            desk.position = Point.read_json(json.position);
+            desk.assignee = json.assignee;
+           add_to_directory(desk);
+            return desk;
         }
 
         override public function set id(value:String):void {

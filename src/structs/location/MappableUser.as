@@ -14,7 +14,8 @@ package structs.location {
         private var _full_name:String;
         private var _username:String;
         private var _email:String;
-        private var _phone:String;
+        private var _desk_phone:String;
+        private var _mobile_phone:String;
         private var _team_name:String;
         private var _work_hours:WorkHours;
         private var _domain_string:String;
@@ -78,7 +79,7 @@ package structs.location {
             _last_name = last_name;
             _username = username;
             _email = email;
-            _phone = phone;
+            _mobile_phone = phone;
             _team_name = team_name;
             _work_hours = work_hours;
             _is_vip = is_vip;
@@ -87,30 +88,33 @@ package structs.location {
         }
 
         static public function read_json(json:Object):MappableUser {
-            var item:MappableUser = new MappableUser();
-            item.id = json.id;
-            item.position = Point.read_json(json.position);
-            item.username = json.username;
-            item.email = json.email;
-            item.phone = json.phone;
-            item.work_hours = json.work_hours;
-            item.full_name = json.full_name;
-            item.domain_string = json.domain_string;
-            item.staffing_type = json.staffing_type;
-            item.title = json.title;
-            item.business_criticality = json.business_criticality;
+            var user:MappableUser = new MappableUser();
+            user.id = json.username;
+            user.username = json.username;
+            user.email = json.email;
+            user.desk_phone = json.desk_phone
+            user.mobile_phone = json.mobile_phone;
+            // TODO: figure out a way to sync this prop from server
+            user.work_hours = WorkHours.read_json(json.work_hours);
+            user.full_name = json.full_name;
+            user.first_name = json.first_name;
+            user.last_name = json.last_name;
+            user.domain_string = json.domain_string;
+            user.staffing_type = json.staffing_type;
+            user.title = json.title;
+            user.business_criticality = json.business_criticality;
 
             for (var id:String in json.desks) {
                 var desk:MappableDesk = MappableDesk.read_json(json.desks[id]);
-                item.add_desk(desk);
+                user.add_desk(desk);
             }
 
             for (id in json.assets) {
                 var asset:MappableMachine = MappableMachine.read_json(json.assets[id]);
-                item.add_asset(asset);
+                user.add_asset(asset);
             }
-
-            return item;
+            add_to_directory(user);
+            return user;
         }
 
         override public function write_json():Object {
@@ -118,7 +122,7 @@ package structs.location {
 
             json.username = this._username;
             json.email = this._email;
-            json.phone = this._phone;
+            json.phone = this._mobile_phone;
             json.work_hours = this._work_hours;
             json.full_name = this._full_name;
             json.domain_string = this._domain_string;
@@ -177,12 +181,20 @@ package structs.location {
             this._email = value;
         }
 
-        public function get phone():String {
-            return this._phone;
+        public function get desk_phone():String {
+            return this._desk_phone;
         }
 
-        public function set phone(value:String):void {
-            this._phone = value;
+        public function set desk_phone(value:String):void {
+            this._desk_phone = value;
+        }
+
+        public function get mobile_phone():String {
+            return this._mobile_phone;
+        }
+
+        public function set mobile_phone(value:String):void {
+            this._mobile_phone = value;
         }
 
         public function get work_hours():WorkHours {
@@ -231,6 +243,14 @@ package structs.location {
 
         public function set business_criticality(value:String):void {
             this._business_criticality = value;
+        }
+
+        public function get is_vip():Boolean {
+            return this._is_vip;
+        }
+
+        public function set is_vip(value:Boolean):void {
+            this._is_vip = value;
         }
 
         public function get desks():Vector.<MappableDesk> {

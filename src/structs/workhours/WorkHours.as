@@ -17,6 +17,11 @@ package structs.workhours {
             return this;
         }
 
+        static public function read_json(json:Object):WorkHours {
+          var wh:WorkHours = new WorkHours();
+          return wh.populate_all(json.start_time, json.end_time, json.time_zone);
+        }
+
         public function get start_time():String {
             return _start_time;
         }

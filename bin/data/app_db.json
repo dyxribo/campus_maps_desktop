@@ -16,6 +16,46 @@
                   "assignee": "dyxribo",
                   "position": { "y": 127, "x": 1058 },
                   "id": "11W020"
+                },
+                "dyxribo": {
+                  "type": 3,
+                  "domain_string": "CN=DDecamp,CN=Users,DC=Americas,DC=daiwa,DC=region",
+                  "desk_phone": "555-555-5555",
+                  "full_name": "Deron Decamp",
+                  "first_name": "Deron",
+                  "staffing_type": "EMP",
+                  "mobile_phone": "555-444-5555",
+                  "vip": "false",
+                  "username": "dyxribo",
+                  "title": "Not an Officer",
+                  "email": "dyxribo@blaxstar.net",
+                  "business_criticality": "3",
+                  "last_name": "Decamp",
+                  "work_hours": {
+                    "start_time": "10",
+                    "end_time": "6",
+                    "time_zone": "est"
+                  }
+                },
+                "ttest": {
+                  "type": 3,
+                  "domain_string": "CN=TTest,CN=Users,DC=Americas,DC=daiwa,DC=region",
+                  "desk_phone": "555-555-5555",
+                  "full_name": "Tonny Test",
+                  "first_name": "Tonny",
+                  "staffing_type": "CONS",
+                  "mobile_phone": "555-444-5555",
+                  "vip": "false",
+                  "username": "ttest",
+                  "title": "Not an Officer",
+                  "email": "tonny.test@blaxstar.net",
+                  "business_criticality": "3",
+                  "last_name": "Test",
+                  "work_hours": {
+                    "start_time": "10",
+                    "end_time": "6",
+                    "time_zone": "est"
+                  }
                 }
               },
               "prefix": "32OS_11F",

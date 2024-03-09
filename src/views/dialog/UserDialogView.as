@@ -1,6 +1,7 @@
 package views.dialog {
     import net.blaxstar.starlib.components.PlainText;
     import net.blaxstar.starlib.components.Checkbox;
+    import structs.workhours.WorkHours;
 
     public class UserDialogView extends BaseDialogView {
 
@@ -18,23 +19,24 @@ package views.dialog {
             _phone_field = new PlainText(this,0,0,"phone");
             _work_hours_field = new PlainText(this,0,0,"work hours");
             _is_vip = new Checkbox(this);
-            _is_showing_bounds_ = true;
+            _is_vip.label = "VIP";
+            _is_vip.enabled = false;
         }
 
         public function set username_field(username:String):void {
-            _username_field.text = username;
+            _username_field.text = "USERNAME: " + username;
         }
 
         public function set email_field(email:String):void {
-            _email_field.text = email;
+            _email_field.text = "EMAIL: " + email;
         }
 
         public function set phone_field(phone:String):void {
-            _phone_field.text = phone;
+            _phone_field.text = "PHONE: " + phone;
         }
 
-        public function set work_hours_field(work_hours:String):void {
-            _work_hours_field.text = work_hours;
+        public function set work_hours_field(work_hours:WorkHours):void {
+            _work_hours_field.text = "Work hours: " + work_hours.start_time + "-" + work_hours.end_time + " " + work_hours.time_zone;
         }
 
         public function set vip_status(is_vip:Boolean):void {

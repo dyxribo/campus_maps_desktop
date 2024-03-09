@@ -86,6 +86,7 @@ package structs.location {
                         break;
                 }
             }
+            add_to_directory(subsection);
             return subsection;
         }
 

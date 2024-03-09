@@ -13,7 +13,7 @@ import thirdparty.org.osflash.signals.Signal;
     public class SaveData {
         static private const VERSION_MAJOR:uint = 0;
         static private const VERSION_MINOR:uint = 9;
-        static private const VERSION_REVISION:uint = 1455;
+        static private const VERSION_REVISION:uint = 1559;
         static private const FILE_EXTENSION:String = '.json';
 
         public const ON_SAVE:Signal = new Signal();
@@ -28,11 +28,33 @@ import thirdparty.org.osflash.signals.Signal;
         public function SaveData() {
             _configuration_file_name = 'config';
             _loader = new XLoader();
+
+            init();
+        }
+
+        public function init():void {
+          _settings = new Dictionary();
+          _settings['first_run'] = true;
+          _settings['current_locale'] = 'en_us';
+          _settings['last_location'] = '';
+          _settings['map_data_mod_date'] = '';
+
+          if (exists) {
+            load();
+          } else {
+            save();
+          }
         }
 
         public function save():void {
+            var json:Object = {};
             var saveBytes:ByteArray = new ByteArray();
-            saveBytes.writeUTFBytes(JSON.stringify(_settings));
+
+            for (var key:String in _settings) {
+              json[key] = _settings[key];
+            }
+
+            saveBytes.writeUTFBytes(JSON.stringify(json));
             IOUtil.exportFile(saveBytes, _configuration_file_name, FILE_EXTENSION, File.applicationDirectory.nativePath, on_write_out);
         }
 
@@ -40,18 +62,16 @@ import thirdparty.org.osflash.signals.Signal;
             File.applicationDirectory.resolvePath(_configuration_file_name).deleteFile();
 
             for (var key:String in _settings) {
-                delete _settings[key];
+                _settings[key] = null;
             }
             ON_CLEARED.dispatch();
         }
 
-        private function load_save_data(file:File):void {
-            var url:URL = new URL(File.applicationDirectory.resolvePath(_configuration_file_name).nativePath);
-            var vec:Vector.<URL> = new Vector.<URL>();
-            vec.push(url);
+        public function load():void {
+            var url:URL = new URL(File.applicationDirectory.resolvePath(_configuration_file_name).nativePath + FILE_EXTENSION, undefined, true);
 
             _loader.ON_COMPLETE.add(on_load_in);
-            _loader.queue_files(vec);
+            _loader.queue_files(url);
         }
 
         private function create_save_data():void {
@@ -61,9 +81,9 @@ import thirdparty.org.osflash.signals.Signal;
             ON_INITIALIZED.dispatch();
         }
 
-        private function on_load_in(url:URL, data:ByteArray):void {
+        private function on_load_in(data:ByteArray):void {
             _loader.ON_COMPLETE.remove(on_load_in);
-            _settings = to_dictionary(JSON.parse(data.readUTFBytes(data.length)));
+            _settings = to_dictionary(JSON.parse(data.readUTFBytes(data.bytesAvailable)));
             ON_LOAD.dispatch();
         }
 
@@ -94,6 +114,10 @@ import thirdparty.org.osflash.signals.Signal;
             return 'v' + VERSION_MAJOR.toString() + '.' + VERSION_MINOR.toString() + ' build ' + VERSION_REVISION.toString();
         }
 
+        public function get exists():Boolean {
+          return File.applicationDirectory.resolvePath(_configuration_file_name).exists;
+        }
+
         /**
          * checks if this is the first time that the program was run.
          */
@@ -119,6 +143,14 @@ import thirdparty.org.osflash.signals.Signal;
 
         public function set last_location(val:String):void {
             _settings.last_location = val;
+        }
+
+        public function get map_data_mod_date():String {
+            return _settings.mdmd;
+        }
+
+        public function set map_data_mod_date(val:String):void {
+            _settings.mdmd = val;
         }
     }
 }

@@ -102,7 +102,7 @@ package structs.location {
                 var current_floor:Floor = Floor.read_json(json.floors[key]);
                 building.add_floor(current_floor);
             }
-
+            add_to_directory(building);
             return building;
         }
 

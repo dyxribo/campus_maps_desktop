@@ -82,7 +82,7 @@ package structs.location {
                 var current_subsection:Subsection = Subsection.read_json(json.subsections[key]);
                 floor.subsections.put(key, current_subsection);
             }
-
+            add_to_directory(floor);
             return floor;
         }
 

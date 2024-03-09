@@ -14,17 +14,17 @@ package structs.location {
     }
 
     static public function read_json(json:Object):MappableMachine {
-      var item:MappableMachine = new MappableMachine();
-      item.id = json.id;
-      item.type = json.type;
-      item.position = Point.read_json(json.position);
-      item.assignee = json.assignee;
-      item.model_name = json.model_name;
-      item.mac_address = json.mac_address;
-      item.ip_address = json.ip_address;
-      item.connected_jack_id = json.connected_jack_id;
-
-      return item;
+      var machine:MappableMachine = new MappableMachine();
+      machine.id = json.id;
+      machine.type = json.type;
+      machine.position = Point.read_json(json.position);
+      machine.assignee = json.assignee;
+      machine.model_name = json.model_name;
+      machine.mac_address = json.mac_address;
+      machine.ip_address = json.ip_address;
+      machine.connected_jack_id = json.connected_jack_id;
+      add_to_directory(machine);
+      return machine;
     }
 
     override public function write_json():Object {

@@ -33,16 +33,17 @@ package structs.location {
         private var _position:Point;
         private var _item_id:String;
         private var _prefix:String;
+        private var _modified:Boolean;
 
         public function MappableItem() {
             this._id ||= 'itm' + Location.temp_assignments++;
             this._type ||= MappableItem.ITEM_GENERIC;
             this._position ||= new Point(0, 0);
-            this.add_to_directory(this);
+            add_to_directory(this);
             super();
         }
 
-        protected function add_to_directory(val:MappableItem):void {
+        static public function add_to_directory(val:MappableItem):void {
 
             switch (val.type) {
                 case ITEM_USER:
@@ -188,6 +189,14 @@ package structs.location {
 
         public function set item_id(value:String):void {
             _item_id = value;
+        }
+
+        public function get modified():Boolean {
+            return _modified;
+        }
+
+        public function set modified(value:Boolean):void {
+            _modified = value;
         }
     }
 
