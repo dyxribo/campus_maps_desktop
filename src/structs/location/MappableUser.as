@@ -28,8 +28,6 @@ package structs.location {
 
         private var _desks:Map;
         private var _assets:Map;
-        private var _desk_vector_cache:Vector.<MappableDesk>;
-        private var _asset_vector_cache:Vector.<MappableMachine>;
 
         // TODO: user photos?
         // TODO: REMOVE DEBUG STUFF
@@ -39,37 +37,35 @@ package structs.location {
             super();
         }
 
-        public function add_desk(desk:MappableDesk):Boolean {
-            if (!_desk_vector_cache) {
-                _desk_vector_cache = new Vector.<MappableDesk>();
+        public function add_desk(desk_id:String):Boolean {
+            if (!_desks) {
+                _desks = new Map(String, String);
             }
-            if (this._desks.has(desk.id)) {
-                DebugDaemon.write_log("error adding desk: the referenced desk already exists for this user (%s).", DebugDaemon.WARN, this._username);
+            if (this._desks.has(desk_id)) {
+                DebugDaemon.write_warning("error adding desk: the referenced desk already exists for this user (%s, %s).", desk_id, this._username);
                 return false;
             } else {
-                this._desks.put(desk.id, desk);
-                this._desk_vector_cache.push(desk);
+                this._desks.put(desk_id, desk_id);
             }
             return true;
         }
 
-        public function get_desk(desk_id:String):MappableDesk {
+        public function get_desk_id(desk_id:String):String {
             if (_desks.has(desk_id)) {
-                return _desks.pull(desk_id) as MappableDesk;
+                return _desks.pull(desk_id) as String;
             }
             return null;
         }
 
-        public function add_asset(asset:MappableMachine):Boolean {
-            if (!_asset_vector_cache) {
-                _asset_vector_cache = new Vector.<MappableMachine>();
+        public function add_asset(asset_id:String):Boolean {
+            if (!_assets) {
+                _assets = new Map(String, String);
             }
-            if (this._assets.has(asset.id)) {
-                DebugDaemon.write_log("error adding asset: the referenced asset already exists for this user.", DebugDaemon.WARN);
+            if (this._assets.has(asset_id)) {
+                DebugDaemon.write_warning("error adding asset: the referenced asset already exists for this user (%s, %s).", asset_id, this._username);
                 return false;
             } else {
-                this._assets.put(asset.id, asset);
-                _asset_vector_cache.push(asset);
+                this._assets.put(asset_id, asset_id);
             }
             return true;
         }
@@ -105,15 +101,12 @@ package structs.location {
             user.business_criticality = json.business_criticality;
 
             for (var id:String in json.desks) {
-                var desk:MappableDesk = MappableDesk.read_json(json.desks[id]);
-                user.add_desk(desk);
+                user.add_desk(id);
             }
 
             for (id in json.assets) {
-                var asset:MappableMachine = MappableMachine.read_json(json.assets[id]);
-                user.add_asset(asset);
+                user.add_asset(id);
             }
-            add_to_directory(user);
             return user;
         }
 
@@ -129,17 +122,20 @@ package structs.location {
             json.staffing_type = this._staffing_type;
             json.title = this._title;
             json.business_criticality = this._business_criticality;
+            json.desks = {};
+            json.assets = {};
 
             var desk_dict:Dictionary = _desks.get_dictionary();
             var asset_dict:Dictionary = _assets.get_dictionary();
 
-            for (var desk:MappableDesk in desk_dict) {
-                json.desks[desk.id] = desk.write_json();
-            }
+            _desks.iterate(function(key:*, val:*):void {
+                json.desks[key] = val;
+            });
 
-            for (var asset:MappableMachine in asset_dict) {
-                json.assets[asset.id] = asset.write_json();
-            }
+            _assets.iterate(function(key:*, val:*):void {
+                json.assets[key] = val;
+            });
+
             return json;
         }
 
@@ -253,12 +249,12 @@ package structs.location {
             this._is_vip = value;
         }
 
-        public function get desks():Vector.<MappableDesk> {
-            return _desk_vector_cache;
+        public function get desks():Array {
+            return _desks.values();
         }
 
-        public function get assets():Vector.<MappableMachine> {
-            return _asset_vector_cache;
+        public function get assets():Array {
+            return _assets.values();
         }
     }
 

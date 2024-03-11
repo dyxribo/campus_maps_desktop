@@ -94,7 +94,7 @@ package structs.location {
                 pin_lookup = new Vector.<Pin>();
             }
 
-            if (!(val is Building) && !(val is Floor) && !(val is Subsection)) {
+            if (!(val is Building) && !(val is Floor) && !(val is Subsection) && !(val is MappableUser)) {
                 var pin:Pin = new Pin(null, val);
                 pin.on_color = Color.PRODUCT_RED.value;
                 pin_lookup.push(pin);

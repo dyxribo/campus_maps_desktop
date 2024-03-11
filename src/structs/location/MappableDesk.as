@@ -16,7 +16,6 @@ package structs.location {
             desk.id = json.id;
             desk.position = Point.read_json(json.position);
             desk.assignee = json.assignee;
-           add_to_directory(desk);
             return desk;
         }
 

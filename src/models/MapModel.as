@@ -110,7 +110,6 @@ package models {
         private function on_map_image_load(b:Bitmap):void {
             current_map_image = b;
             MappableItem.pin_lookup.forEach(function(current_pin:Pin, index:uint, arr:Vector.<Pin>):void {
-
                 notify_observers({'new_pin': current_pin});
             });
         }
@@ -123,7 +122,7 @@ package models {
         public function get_location(location_link:String):MappableItem {
             var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
 
-            if (link_elements.length) {
+            if (link_elements && link_elements.length) {
                 var building_id:String = link_elements[1] ? link_elements[1] : '';
                 var floor_id:String = link_elements[2] ? link_elements[2] : '';
                 var subsection_id:String = link_elements[3] ? link_elements[3] : '';

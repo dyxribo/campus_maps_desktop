@@ -7,16 +7,16 @@ package structs {
     import net.blaxstar.starlib.debug.DebugDaemon;
 
     public class Map {
-        private var key_type:Class;
-        private var val_type:Class;
+        private var _key_type:Class;
+        private var _val_type:Class;
         private var _dict:Dictionary;
         private var _dict_size:uint;
         private var _overwrite:Boolean;
 
         // TODO: REMOVE DEBUG STUFF
         public function Map(key_class:Class, val_class:Class) {
-            key_type = key_class;
-            val_type = val_class;
+            _key_type = key_class;
+            _val_type = val_class;
             _dict = new Dictionary();
         }
 
@@ -24,6 +24,9 @@ package structs {
             if (validate(key, value)) {
                 if (!_overwrite) {
                     if (!has(key)) {
+                        if (_key_type == String) {
+                            key = String(key).toLowerCase();
+                        }
                         _dict[key] = value;
                         ++_dict_size;
                     } else {
@@ -36,12 +39,15 @@ package structs {
                 }
             } else {
                 // INCORRECT TYPE(S)
-                DebugDaemon.write_error("error when putting object in Map: incorrect types were provided. " + "\nexpected: <%s, %s>; got: <%s, %s>", key_type, val_type, getQualifiedClassName(key), getQualifiedClassName(value));
+                DebugDaemon.write_error("error when putting object in Map: incorrect types were provided. " + "\nexpected: <%s, %s>; got: <%s, %s>", _key_type, _val_type, getQualifiedClassName(key), getQualifiedClassName(value));
             }
         }
 
         public function pull(key:Object):Object {
             if (has(key)) {
+                if (key is String) {
+                    key = String(key).toLowerCase();
+                }
                 return _dict[key];
             } else {
                 return undefined;
@@ -49,6 +55,9 @@ package structs {
         }
 
         public function has(key:Object):Boolean {
+            if (key is String) {
+                key = String(key).toLowerCase();
+            }
             return !!_dict[key];
         }
 
@@ -74,6 +83,22 @@ package structs {
 
         public function get_dictionary():Dictionary {
             return _dict;
+        }
+
+        public function keys():Array {
+            var keys_array:Array = [];
+            iterate(function(key:*, val:*):void {
+                keys_array.push(key);
+            });
+            return keys_array;
+        }
+
+        public function values():Array {
+            var values_array:Array = [];
+            iterate(function(key:*, val:*):void {
+                values_array.push(val);
+            });
+            return values_array;
         }
 
         public function literal(param:Array):Map {
@@ -106,7 +131,7 @@ package structs {
         }
 
         private function validate(key:Object, value:Object):Boolean {
-            return key is key_type && value is val_type;
+            return key is _key_type && value is _val_type;
         }
     }
 }

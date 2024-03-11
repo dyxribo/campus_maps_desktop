@@ -20,6 +20,6 @@
         "setvars",
         "ActionScript: compile debug - asconfig.json",
       ],
-    }
+    },
   ]
 }

@@ -86,7 +86,6 @@ package structs.location {
                         break;
                 }
             }
-            add_to_directory(subsection);
             return subsection;
         }
 
@@ -127,8 +126,8 @@ package structs.location {
             return _registration_point;
         }
 
-        public function set_registration_point(x:int,y:int):void {
-            _registration_point ||= new Point(0,0);
+        public function set_registration_point(x:int, y:int):void {
+            _registration_point ||= new Point(0, 0);
             _registration_point.x = x;
             _registration_point.y = y;
         }

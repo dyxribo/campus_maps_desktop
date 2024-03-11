@@ -1,4 +1,5 @@
 package views.map {
+    import app.interfaces.IInjector;
     import app.interfaces.IMapImageLoaderObserver;
     import app.interfaces.IObserver;
 
@@ -15,10 +16,12 @@ package views.map {
 
     import geom.Point;
 
+    import models.AccessInjector;
+    import models.StageInjector;
+
     import modules.Pin;
     import modules.Searchbar;
 
-    import net.blaxstar.starlib.components.Button;
     import net.blaxstar.starlib.components.ContextMenu;
     import net.blaxstar.starlib.components.Dialog;
     import net.blaxstar.starlib.components.ListItem;
@@ -32,6 +35,8 @@ package views.map {
 
     import views.dialog.BaseDialogView;
     import views.dialog.DeskDialogView;
+    import thirdparty.org.osflash.signals.Signal;
+    import models.MapSearchResult;
 
     /**
      * TODO: documentation, general cleanup, REMOVE DEBUG STUFF
@@ -45,8 +50,11 @@ package views.map {
         private var _image_container:Sprite;
         private var _searchbar:Searchbar;
         private var _context_menu:ContextMenu;
-        private var _stage:Stage;
 
+        // stage injector properties
+        private var _stage:Stage;
+        // access injector properties
+        private var _admin:Boolean;
 
         private var _item_detail_dialog:Dialog;
         private var _detail_dialog_view:BaseDialogView;
@@ -54,6 +62,7 @@ package views.map {
         private var _target_pin:Pin;
         private var _is_dragging_map:Boolean;
 
+        private var _on_search_signal:Signal;
         private var _on_context_menu_roll_out:NativeSignal;
         private var _on_context_menu_release_outside:NativeSignal;
         private var _on_context_menu_defocus:NativeSignal;
@@ -69,8 +78,16 @@ package views.map {
          * /// TODO: documentation
          * @param directory_data
          */
-        public function MapView(stage:Stage) {
-            _stage = stage;
+        public function MapView(injector:IInjector) {
+            if (injector is AccessInjector) {
+                var a:AccessInjector = AccessInjector(injector);
+                _stage = a.stage;
+                _admin = a.admin_access;
+            } else if (injector is StageInjector) {
+                var b:StageInjector = StageInjector(injector);
+                _stage = b.stage;
+            }
+
             super();
             init();
         }
@@ -82,22 +99,22 @@ package views.map {
         private function init():void {
             _image_container = new Sprite();
             _image_mask = new Sprite();
-            //_searchbar = new Searchbar();
+            _searchbar = new Searchbar();
             _item_detail_dialog = new Dialog(this);
             _dialog_view_cache = new Dictionary(true);
             _context_menu = new ContextMenu();
+            _on_search_signal = new Signal(String);
 
             add_children();
         }
 
         private function add_children():void {
+            //addChild(_image_container);
+            //addChild(_image_mask);
             //addChild(_searchbar);
-            addChild(_image_container);
-            addChild(_image_mask);
             _item_detail_dialog.close();
-            //_item_detail_dialog.height = 300;
 
-            _item_detail_dialog.add_button("close", _item_detail_dialog.close, Button.DEPRESSED);
+            _item_detail_dialog.add_button("close", _item_detail_dialog.close);
         }
 
         private function on_pin_click(e:MouseEvent):void {
@@ -236,6 +253,8 @@ package views.map {
                 _image_container.addChild(data['current_map_image'] as Bitmap);
                 addChild(_image_container);
                 addChild(_image_mask);
+                addChild(_searchbar);
+                _searchbar.search_signal.add(on_search_init);
                 _image_container.addChild(_context_menu);
                 draw_image_mask();
                 _image_container.mask = _image_mask;
@@ -245,9 +264,24 @@ package views.map {
 
         // * GETTERS & SETTERS * //
 
+        public function get on_search_signal():Signal {
+            return _on_search_signal;
+        }
 
 
         // * DELEGATES * //
+
+        public function on_search_init(search_input:String):void {
+            _on_search_signal.dispatch(search_input);
+        }
+
+        public function on_search_results(results:Vector.<MapSearchResult>):void {
+            // TODO: implement automatic floor switching
+            for (var i:int = 0; i < results.length; i++) {
+                DebugDaemon.write_debug("found %s @ {%s, %s}.", results[i].label, results[i].position.x, results[i].position.y);
+            }
+            //pan_map(results[0].position);
+        }
 
         public function init_context_menu(contexts:Array):void {
             /**

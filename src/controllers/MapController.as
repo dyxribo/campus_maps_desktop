@@ -15,6 +15,8 @@ package controllers {
     import net.blaxstar.starlib.io.XLoader;
 
     import views.map.MapView;
+    import structs.location.MappableItem;
+    import models.MapSearchResult;
 
     public class MapController implements IMapImageLoaderSubject {
         private const _OBSERVER_LIST:Vector.<IMapImageLoaderObserver> = new Vector.<IMapImageLoaderObserver>();
@@ -37,8 +39,20 @@ package controllers {
             _model.register_observer(_view);
             _image_loader = new XLoader();
             _model.on_image_load_request.add(load_map_image);
+            _view.on_search_signal.add(on_search_init);
         }
 
+        private function on_search_init(search_input:String):void {
+            var results:Vector.<MappableItem> = _model.search(search_input, MapModel.SEARCH_ALL);
+            var formatted_results:Vector.<MapSearchResult> = new Vector.<MapSearchResult>();
+
+            for (var i:int = 0; i < results.length; i++) {
+                var current_msr:MapSearchResult = new MapSearchResult(results[i].item_id, results[i].position);
+                formatted_results.push(current_msr);
+            }
+
+            _view.on_search_results(formatted_results);
+        }
 
         private function load_map_image():void {
             var floor_map_png:File = _model.ASSET_IMAGE_FOLDER.resolvePath(_model.current_location.id).resolvePath(_model.current_location.floor_id + ".png");
@@ -59,10 +73,10 @@ package controllers {
                 var context_map_general:Array = [Contexts.CONTEXT_MAP_GENERAL_ADD_ITEM,
                     Contexts.CONTEXT_MAP_GENERAL_CREATE_PATH, Contexts.CONTEXT_MAP_GENERAL];
 
-                var context_map_item:Array = [ Contexts.CONTEXT_MAP_ITEM_RENAME_ITEM,
+                var context_map_item:Array = [Contexts.CONTEXT_MAP_ITEM_RENAME_ITEM,
                     Contexts.CONTEXT_MAP_ITEM_MOVE_ITEM,
                     Contexts.CONTEXT_MAP_ITEM_ARCHIVE_ITEM,
-                    Contexts.CONTEXT_MAP_ITEM_DELETE_ITEM,Contexts.CONTEXT_MAP_ITEM];
+                    Contexts.CONTEXT_MAP_ITEM_DELETE_ITEM, Contexts.CONTEXT_MAP_ITEM];
 
 
                 _view.init_context_menu([context_map_general, context_map_item]);

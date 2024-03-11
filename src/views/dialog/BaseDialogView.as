@@ -58,7 +58,7 @@ package views.dialog {
         }
 
         public function remove_location_field():void {
-         removeChild(_item_location);
+            removeChild(_item_location);
         }
 
         public function set_assignee_field(assignee:String):void {
@@ -66,7 +66,7 @@ package views.dialog {
         }
 
         public function remove_assignee_field():void {
-         removeChild(_item_assignee);
+            removeChild(_item_assignee);
         }
 
         public function set parent_dialog(dialog:Dialog):void {
@@ -74,43 +74,45 @@ package views.dialog {
         }
 
         public function get parent_dialog():Dialog {
-          return _parent_dialog;
+            return _parent_dialog;
         }
 
-        private function on_assignee_click(event:MouseEvent):void
-        {
-          if (!_parent_dialog || !_parent_dialog.parent || StringUtil.is_empty_or_null(_item_assignee.text)) {
-            return;
-          } else {
-            var username:String = _item_assignee.text.replace("ASSIGNED USER: ", "");
-            if (!_dialog_view_cache || _dialog_view_cache.hasOwnProperty(username)) {
-              // push new user dialog view
-              _dialog_view_cache ||= new Dictionary();
-              var d:Dialog = new Dialog(_parent_dialog.parent);
-              var v:UserDialogView = new UserDialogView();
-              var u:MappableUser = MappableItem.user_lookup.pull(username) as MappableUser;
-              // initialize the information view component for the dialog
-              v.remove_assignee_field();
-              v.set_name_field(u.full_name);
-              v.set_type_field("USER");
-              v.remove_location_field();
-              v.username_field = username;
-              v.phone_field = u.mobile_phone;
-              v.email_field = u.email;
-              v.work_hours_field = u.work_hours;
-              v.vip_status = u.is_vip;
-              // initialize the user info dialog containing the info view.
-              d.title = u.username + " properties";
-              d.auto_resize = true;
-              d.add_component(v);
-              d.add_button("close", function():void{d.close();_parent_dialog.enabled=true});
-              _dialog_view_cache[username] = d;
-              _parent_dialog.push_dialog(d);
+        private function on_assignee_click(event:MouseEvent):void {
+            if (!_parent_dialog || !_parent_dialog.parent || StringUtil.is_empty_or_null(_item_assignee.text)) {
+                return;
             } else {
-              d = _dialog_view_cache[username] as Dialog;
-              _parent_dialog.push_dialog(d);
+                var username:String = _item_assignee.text.replace("ASSIGNED USER: ", "");
+                if (!_dialog_view_cache || _dialog_view_cache.hasOwnProperty(username)) {
+                    // push new user dialog view
+                    _dialog_view_cache ||= new Dictionary();
+                    var d:Dialog = new Dialog(_parent_dialog.parent);
+                    var v:UserDialogView = new UserDialogView();
+                    var u:MappableUser = MappableItem.user_lookup.pull(username) as MappableUser;
+                    // initialize the information view component for the dialog
+                    v.remove_assignee_field();
+                    v.set_name_field(u.full_name);
+                    v.set_type_field("USER");
+                    v.remove_location_field();
+                    v.username_field = username;
+                    v.phone_field = u.mobile_phone;
+                    v.email_field = u.email;
+                    v.work_hours_field = u.work_hours;
+                    v.vip_status = u.is_vip;
+                    // initialize the user info dialog containing the info view
+                    d.title = u.username + " properties";
+                    d.auto_resize = true;
+                    d.add_component(v);
+                    d.add_button("close", function():void {
+                        d.close();
+                        _parent_dialog.enabled = true
+                    });
+                    _dialog_view_cache[username] = d;
+                    _parent_dialog.push_dialog(d);
+                } else {
+                    d = _dialog_view_cache[username] as Dialog;
+                    _parent_dialog.push_dialog(d);
+                }
             }
-          }
         }
     }
 }

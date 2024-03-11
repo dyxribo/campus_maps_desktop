@@ -26,6 +26,8 @@ package {
     import net.blaxstar.starlib.utils.StringUtil;
     import flash.filesystem.FileStream;
     import flash.filesystem.FileMode;
+    import models.AccessInjector;
+    import thirdparty.com.lorentz.processing.ProcessExecutor;
 
     /**
      * TODO: documentation
@@ -60,6 +62,7 @@ package {
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
             DebugDaemon.init(stage.nativeWindow);
+            ProcessExecutor.instance.initialize(stage);
             Style.init(this);
             Font.init();
 
@@ -131,7 +134,7 @@ package {
 
         private function init_map(json:Object):void {
             _map_model = new MapModel();
-            _map_view = new MapView(stage);
+            _map_view = new MapView(new AccessInjector(stage, false));
             _map_controller = new MapController(_map_model, _map_view);
 
             load_campus_data(json);
