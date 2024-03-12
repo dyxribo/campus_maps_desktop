@@ -282,17 +282,6 @@ package models {
                     case SEARCH_ALL:
                     default:
                         // query is prob not a direct link, so search by id
-                        /**
-                         * need to search:
-                         * desk locations
-                         * users
-                         * workstations
-                         * printers
-                         * buildings
-                         * floor id only
-                         * subsection id only
-                         * generic item id only
-                         * */
                         var desk:MappableDesk = search_desks(query);
                         var user:MappableUser = search_users(query);
                         var workstation:MappableWorkstation;
@@ -306,7 +295,16 @@ package models {
                             results.push(desk)
                         }
                         if (user) {
-                            results.push(user)
+                          var user_desks:Array = user.desks;
+
+                          if (user_desks && user_desks.length) {
+                            for (var i:int=0; i<user_desks.length;i++){
+                              var current_desk:MappableDesk = MappableItem.desk_lookup.pull(user_desks[i]) as MappableDesk;
+                              results.push(current_desk);
+                            }
+                          }
+
+                          results.push(user);
                         }
                         break;
                     case SEARCH_DESK:

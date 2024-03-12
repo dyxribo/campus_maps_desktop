@@ -13,11 +13,11 @@
               "items": {
                 "11W020": {
                   "type": 5,
-                  "assignee": "dyxribo",
+                  "assignee": "ddecamp",
                   "position": { "y": 127, "x": 1058 },
                   "id": "11W020"
                 },
-                "dyxribo": {
+                "ddecamp": {
                   "type": 3,
                   "domain_string": "CN=DDecamp,CN=Users,DC=Americas,DC=daiwa,DC=region",
                   "desk_phone": "555-555-5555",
@@ -26,15 +26,18 @@
                   "staffing_type": "EMP",
                   "mobile_phone": "555-444-5555",
                   "vip": "false",
-                  "username": "dyxribo",
+                  "username": "ddecamp",
                   "title": "Not an Officer",
-                  "email": "dyxribo@blaxstar.net",
+                  "email": "deron.decamp@us.daiwacm.com",
                   "business_criticality": "3",
                   "last_name": "Decamp",
                   "work_hours": {
                     "start_time": "10",
                     "end_time": "6",
                     "time_zone": "est"
+                  },
+                  "desks": {
+                    "11W020": "11W020"
                   }
                 },
                 "ttest": {

@@ -37,6 +37,8 @@ package views.map {
     import views.dialog.DeskDialogView;
     import thirdparty.org.osflash.signals.Signal;
     import models.MapSearchResult;
+    import modules.SearchResultCard;
+    import net.blaxstar.starlib.components.Component;
 
     /**
      * TODO: documentation, general cleanup, REMOVE DEBUG STUFF
@@ -63,6 +65,7 @@ package views.map {
         private var _is_dragging_map:Boolean;
 
         private var _on_search_signal:Signal;
+        private var _search_result_card:SearchResultCard;
         private var _on_context_menu_roll_out:NativeSignal;
         private var _on_context_menu_release_outside:NativeSignal;
         private var _on_context_menu_defocus:NativeSignal;
@@ -280,7 +283,19 @@ package views.map {
             for (var i:int = 0; i < results.length; i++) {
                 DebugDaemon.write_debug("found %s @ {%s, %s}.", results[i].label, results[i].position.x, results[i].position.y);
             }
-            //pan_map(results[0].position);
+            if (results.length == 1) {
+              pan_map(results[0].position);
+            } else {
+              if (!_search_result_card) {
+                _search_result_card = new SearchResultCard();
+              _search_result_card.move(Component.PADDING, _searchbar.y + _searchbar.height + Component.PADDING);
+              }
+              addChild(_search_result_card);
+              for (var i:int=0;i<results.length;i++){
+                _search_result_card.add_search_result(results[i]);
+              }
+            }
+            //
         }
 
         public function init_context_menu(contexts:Array):void {
