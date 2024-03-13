@@ -294,17 +294,19 @@ package models {
                         if (desk) {
                             results.push(desk)
                         }
+
                         if (user) {
-                          var user_desks:Array = user.desks;
-
-                          if (user_desks && user_desks.length) {
-                            for (var i:int=0; i<user_desks.length;i++){
-                              var current_desk:MappableDesk = MappableItem.desk_lookup.pull(user_desks[i]) as MappableDesk;
-                              results.push(current_desk);
+                            results.push(user);
+                            var user_desks:Array = user.desks;
+                            // skip desk enumeration if no desks are present
+                            if (user_desks && user_desks.length) {
+                                for (var i:int = 0; i < user_desks.length; i++) {
+                                    var current_desk:MappableDesk = MappableItem.desk_lookup.pull(user_desks[i]) as MappableDesk;
+                                    results.push(current_desk);
+                                }
                             }
-                          }
 
-                          results.push(user);
+
                         }
                         break;
                     case SEARCH_DESK:

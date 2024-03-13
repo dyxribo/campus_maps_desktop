@@ -17,6 +17,7 @@ package controllers {
     import views.map.MapView;
     import structs.location.MappableItem;
     import models.MapSearchResult;
+    import structs.location.MappableUser;
 
     public class MapController implements IMapImageLoaderSubject {
         private const _OBSERVER_LIST:Vector.<IMapImageLoaderObserver> = new Vector.<IMapImageLoaderObserver>();
@@ -47,7 +48,8 @@ package controllers {
             var formatted_results:Vector.<MapSearchResult> = new Vector.<MapSearchResult>();
 
             for (var i:int = 0; i < results.length; i++) {
-                var current_msr:MapSearchResult = new MapSearchResult(results[i].item_id, results[i].position);
+                var current_result:MappableItem = results[i];
+                var current_msr:MapSearchResult = new MapSearchResult(current_result.item_id, current_result.position, (current_result is MappableUser) ? MapSearchResult.USER : MapSearchResult.LOCATION);
                 formatted_results.push(current_msr);
             }
 

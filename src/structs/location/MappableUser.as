@@ -250,11 +250,11 @@ package structs.location {
         }
 
         public function get desks():Array {
-            return _desks.values();
+            return (_desks) ? _desks.values() : [];
         }
 
         public function get assets():Array {
-            return _assets.values();
+            return (_desks) ? _assets.values() : [];
         }
     }
 

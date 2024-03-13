@@ -257,6 +257,7 @@ package views.map {
                 addChild(_image_container);
                 addChild(_image_mask);
                 addChild(_searchbar);
+                _searchbar.x = _searchbar.y = Component.PADDING;
                 _searchbar.search_signal.add(on_search_init);
                 _image_container.addChild(_context_menu);
                 draw_image_mask();
@@ -284,16 +285,18 @@ package views.map {
                 DebugDaemon.write_debug("found %s @ {%s, %s}.", results[i].label, results[i].position.x, results[i].position.y);
             }
             if (results.length == 1) {
-              pan_map(results[0].position);
+                if (results[0].type == MapSearchResult.LOCATION) {
+                    pan_map(results[0].position);
+                } else {
+                    _search_result_card.set_search_results(results);
+                }
             } else {
-              if (!_search_result_card) {
-                _search_result_card = new SearchResultCard();
-              _search_result_card.move(Component.PADDING, _searchbar.y + _searchbar.height + Component.PADDING);
-              }
-              addChild(_search_result_card);
-              for (var i:int=0;i<results.length;i++){
-                _search_result_card.add_search_result(results[i]);
-              }
+                if (!_search_result_card) {
+                    _search_result_card = new SearchResultCard();
+                    _search_result_card.move(Component.PADDING, _searchbar.y + _searchbar.height + Component.PADDING);
+                }
+                addChild(_search_result_card);
+                _search_result_card.set_search_results(results);
             }
             //
         }
