@@ -49,7 +49,7 @@ package controllers {
 
             for (var i:int = 0; i < results.length; i++) {
                 var current_result:MappableItem = results[i];
-                var current_msr:MapSearchResult = new MapSearchResult(current_result.item_id, current_result.position, (current_result is MappableUser) ? MapSearchResult.USER : MapSearchResult.LOCATION);
+                var current_msr:MapSearchResult = new MapSearchResult(current_result.item_id, current_result.position, (current_result is MappableUser) ? MapSearchResult.USER : MapSearchResult.LOCATION, {"item": current_result});
                 formatted_results.push(current_msr);
             }
 

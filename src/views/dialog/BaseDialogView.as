@@ -12,8 +12,9 @@ package views.dialog {
     import net.blaxstar.starlib.components.ListItem;
 
     public class BaseDialogView extends VerticalBox {
+        static protected var _dialog_view_cache:Dictionary;
         private var _parent_dialog:Dialog;
-        private var _dialog_view_cache:Dictionary;
+        private var _sub_dialog:Dialog;
         private var _dialog_info_type:uint;
         private var _item_name_field:PlainText;
         private var _item_type_field:PlainText;
@@ -78,41 +79,73 @@ package views.dialog {
             return _parent_dialog;
         }
 
+        protected function get sub_dialog():Dialog {
+            if (!_sub_dialog) {
+                _sub_dialog = new Dialog();
+            }
+            return _sub_dialog;
+        }
+
         private function on_assignee_click(event:MouseEvent):void {
             if (!_parent_dialog || !_parent_dialog.parent || StringUtil.is_empty_or_null(_item_assignee.label)) {
                 return;
             } else {
                 var username:String = _item_assignee.label.replace("ASSIGNED USER: ", "");
-                if (!_dialog_view_cache || _dialog_view_cache.hasOwnProperty(username)) {
+                if (!_sub_dialog) {
+                    _sub_dialog = new Dialog(_parent_dialog.parent);
+                }
+                if (!_dialog_view_cache || !_dialog_view_cache.hasOwnProperty(username)) {
                     // push new user dialog view
                     _dialog_view_cache ||= new Dictionary();
-                    var d:Dialog = new Dialog(_parent_dialog.parent);
                     var v:UserDialogView = new UserDialogView();
-                    var u:MappableUser = MappableItem.user_lookup.pull(username) as MappableUser;
-                    // initialize the information view component for the dialog
-                    v.remove_assignee_field();
-                    v.set_name_field(u.full_name);
-                    v.set_type_field("USER");
-                    v.remove_location_field();
-                    v.username_field = username;
-                    v.phone_field = u.mobile_phone;
-                    v.email_field = u.email;
-                    v.work_hours_field = u.work_hours;
-                    v.vip_status = u.is_vip;
-                    // initialize the user info dialog containing the info view
-                    d.title = u.username + " properties";
-                    d.auto_resize = true;
-                    d.add_component(v);
-                    d.add_button("close", function():void {
-                        d.close();
-                        _parent_dialog.enabled = true
+                    v.build_view(username);
+                    _sub_dialog.move(_parent_dialog.x + PADDING, _parent_dialog.y + PADDING);
+                    _parent_dialog.enabled = false;
+                    _sub_dialog.add_button("close", function():void {
+                        _sub_dialog.close();
+                        _parent_dialog.enabled = true;
                     });
-                    _dialog_view_cache[username] = d;
-                    _parent_dialog.push_dialog(d);
                 } else {
-                    d = _dialog_view_cache[username] as Dialog;
-                    _parent_dialog.push_dialog(d);
+                    v = _dialog_view_cache[username] as UserDialogView;
+                    _sub_dialog.component_container.removeChildren();
+                    _sub_dialog.add_component(v);
+                    push_to_parent_dialog();
                 }
+                // initialize the user info dialog containing the info view
+                _sub_dialog.title = username + " properties";
+                _sub_dialog.auto_resize = true;
+                _sub_dialog.add_component(v);
+
+            }
+        }
+
+        public function push_to_parent_dialog():void {
+            _parent_dialog.push_dialog(_sub_dialog);
+        }
+
+        public function build_view(id:String):void {
+            var u:MappableItem = MappableItem.user_lookup.pull(id) as MappableItem;
+            // initialize the information view component for the dialog
+            set_name_field(u.item_id);
+            set_type_field(u.type_string);
+            set_location_field(u.link);
+            set_assignee_field((u.hasOwnProperty("assignee") ? u["assignee"] : "unknown"));
+
+            _dialog_view_cache[id] = this;
+        }
+
+        static public function dialog_in_cache(id:String):Boolean {
+            if (!_dialog_view_cache) {
+                _dialog_view_cache = new Dictionary();
+            }
+            return _dialog_view_cache.hasOwnProperty(id);
+        }
+
+        static public function get_cached_dialog(id:String):BaseDialogView {
+            if (dialog_in_cache(id)) {
+                return _dialog_view_cache[id];
+            } else {
+                return null;
             }
         }
     }

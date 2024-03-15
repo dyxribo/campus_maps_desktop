@@ -198,6 +198,19 @@ package structs.location {
         public function set modified(value:Boolean):void {
             _modified = value;
         }
+
+        public function get type_string():String {
+          switch (_type) {
+            case ITEM_USER:
+              return "User";
+            case ITEM_WORKSTATION:
+              return "Workstation";
+            case ITEM_DESK:
+              return "Desk";
+            default:
+              return "Mapped Item";
+          }
+        }
     }
 
 }

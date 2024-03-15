@@ -2,6 +2,9 @@ package views.dialog {
     import net.blaxstar.starlib.components.PlainText;
     import net.blaxstar.starlib.components.Checkbox;
     import structs.workhours.WorkHours;
+    import structs.location.MappableUser;
+    import structs.location.MappableItem;
+    import net.blaxstar.starlib.debug.DebugDaemon;
 
     public class UserDialogView extends BaseDialogView {
 
@@ -23,6 +26,22 @@ package views.dialog {
             _is_vip.enabled = false;
         }
 
+        override public function build_view(username:String):void {
+                    var u:MappableUser = MappableItem.user_lookup.pull(username) as MappableUser;
+                    // initialize the information view component for the dialog
+                    remove_assignee_field();
+                    set_name_field(u.full_name);
+                    set_type_field(u.type_string);
+                    remove_location_field();
+                    username_field = username;
+                    phone_field = u.mobile_phone;
+                    email_field = u.email;
+                    work_hours_field = u.work_hours;
+                    vip_status = u.is_vip;
+
+                    _dialog_view_cache[username] = this;
+        }
+
         public function set username_field(username:String):void {
             _username_field.text = "USERNAME: " + username;
         }
@@ -42,5 +61,6 @@ package views.dialog {
         public function set vip_status(is_vip:Boolean):void {
             _is_vip.checked = is_vip;
         }
+
     }
 }

@@ -124,35 +124,31 @@ package views.map {
             _target_pin = e.currentTarget as Pin;
             var assoc_item:MappableItem = _target_pin.linked_item;
 
-            if (_item_detail_dialog.component_container.numChildren > 0 && assoc_item.type !== (_item_detail_dialog.component_container.getChildAt(0) as BaseDialogView).info_type) {
 
-                if (_item_detail_dialog.component_container.numChildren) {
-                    _item_detail_dialog.component_container.removeChildren();
+
+            if (BaseDialogView.dialog_in_cache(assoc_item.id)) {
+                _detail_dialog_view = BaseDialogView.get_cached_dialog(assoc_item.id);
+            } else {
+                switch (assoc_item.type) {
+                    case MappableItem.ITEM_DESK:
+                        var d:DeskDialogView = new DeskDialogView();
+                        _detail_dialog_view = d;
+                        d.parent_dialog = _item_detail_dialog;
+                        _item_detail_dialog.message = '';
+                        _item_detail_dialog.auto_resize = true;
+                        _item_detail_dialog.title = assoc_item.id + " properties";
+                        _item_detail_dialog.add_component(_detail_dialog_view);
+                        _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
+                        d.build_view(assoc_item.id);
+                        // TODO: add edit button to dialog in order to modify props. this needs to be authenticated, though.
+                        break;
+
+                    default:
+                        break;
                 }
             }
-            _detail_dialog_view = item_in_cache(assoc_item);
-            switch (assoc_item.type) {
-                case MappableItem.ITEM_DESK:
-                    if (!_detail_dialog_view) {
-                        _dialog_view_cache[assoc_item.id] = new DeskDialogView();
-                        _detail_dialog_view = _dialog_view_cache[assoc_item.id];
-                    }
-                    (_detail_dialog_view as DeskDialogView).is_adjustable = (assoc_item as MappableDesk).is_adjustable;
-                    _detail_dialog_view.set_name_field(assoc_item.id);
-                    _detail_dialog_view.set_location_field(assoc_item.link);
-                    _detail_dialog_view.set_assignee_field((assoc_item as MappableDesk).assignee);
-                    _detail_dialog_view.parent_dialog = _item_detail_dialog;
-                    _item_detail_dialog.message = '';
-                    _item_detail_dialog.auto_resize = true;
-                    _item_detail_dialog.title = assoc_item.id + " properties";
-                    _item_detail_dialog.add_component(_detail_dialog_view);
-                    _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
-                    // TODO: add edit button to dialog in order to modify props. this needs to be authenticated, though.
-                    break;
 
-                default:
-                    break;
-            }
+
 
             /**
              * form components needed:
@@ -294,11 +290,17 @@ package views.map {
                 if (!_search_result_card) {
                     _search_result_card = new SearchResultCard();
                     _search_result_card.move(Component.PADDING, _searchbar.y + _searchbar.height + Component.PADDING);
+                    _search_result_card.auto_resize = true;
+                    _search_result_card.on_position_dispatch.add(on_search_select);
                 }
                 addChild(_search_result_card);
                 _search_result_card.set_search_results(results);
             }
             //
+        }
+
+        private function on_search_select(link:String, position:Point):void {
+            pan_map(position);
         }
 
         public function init_context_menu(contexts:Array):void {

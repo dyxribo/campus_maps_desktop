@@ -8,11 +8,17 @@ package models {
         private var _label:String;
         private var _point:Point;
         private var _type:String;
+        private var _data:Object;
 
-        public function MapSearchResult(label:String, position:Point, type:String = "location") {
+        public function MapSearchResult(label:String, position:Point, type:String = "location", data:Object=null) {
             _label = label;
             _point = position;
             _type = type;
+            _data = data;
+        }
+
+        public function get data():Object {
+          return _data;
         }
 
         public function get label():String {
