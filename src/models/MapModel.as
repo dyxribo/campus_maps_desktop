@@ -55,7 +55,6 @@ package models {
         private var _bitmap_data_cache:Dictionary;
         private var _image_size:Point;
         private var _pan_position:Point;
-        private var _app_config:SaveData;
 
         public var on_image_load_request:Signal;
         public var on_json_read_in:Signal;
@@ -68,7 +67,7 @@ package models {
             on_image_load_request = new Signal();
             _bitmap_data_cache = new Dictionary();
 
-            // TODO (deron.decamp@): savedata. need to save last location viewed and load on app start
+            // TODO (deron.decamp@): savedata. need to save last location viewed and load on model init
         }
 
         /**
@@ -101,8 +100,6 @@ package models {
             }
 
             set_location(_previous_session_location_link);
-
-            notify_observers({'current_location': _current_location});
             this.on_image_load_request.dispatch();
         }
 

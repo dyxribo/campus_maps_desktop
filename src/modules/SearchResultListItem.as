@@ -10,18 +10,19 @@ package modules
 
     public function SearchResultListItem(label:String="New Item\nsearch@result.com\nNot an Officer") {
       data = {};
+      _is_rounded = true;
       super(null,0,0,label);
     }
         override public function add_children():void {
           super.add_children();
-          label_component.multiline = true;
-
         }
         override public function draw(e:Event = null):void {
             _width_ = label_component.width = 250;
             _height_ = label_component.height;
+            if (!label_component.multiline) {
+              label_component.multiline = true;
+            }
             super.draw();
-            dispatchEvent(new Event(Event.RESIZE));
         }
   }
 }

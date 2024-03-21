@@ -84,9 +84,9 @@ package {
             _db_login_password_field = new InputTextField(null, 0, 0, "password");
             _db_login_password_field.display_as_password = true;
             _db_login_submit_button = new Button(null, 0, 0, "SUBMIT");
-            _db_login_prompt.add_component(_db_login_username_field);
-            _db_login_prompt.add_component(_db_login_password_field);
-            _db_login_prompt.add_component(_db_login_submit_button);
+            _db_login_prompt.addChild(_db_login_username_field);
+            _db_login_prompt.addChild(_db_login_password_field);
+            _db_login_prompt.addChild(_db_login_submit_button);
             _db_login_prompt.set_size(300, 300);
             _db_login_prompt.draggable = false;
 
@@ -134,7 +134,7 @@ package {
 
         private function init_map(json:Object):void {
             _map_model = new MapModel();
-            _map_view = new MapView(new AccessInjector(stage, false));
+            _map_view = new MapView(new AccessInjector(stage, true));
             _map_controller = new MapController(_map_model, _map_view);
 
             load_campus_data(json);

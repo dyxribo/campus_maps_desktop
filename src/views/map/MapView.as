@@ -39,6 +39,12 @@ package views.map {
     import models.MapSearchResult;
     import modules.SearchResultCard;
     import net.blaxstar.starlib.components.Component;
+    import net.blaxstar.starlib.components.PlainText;
+    import structs.location.MappableUser;
+    import net.blaxstar.starlib.style.Color;
+    import structs.location.AssignableItem;
+    import net.blaxstar.starlib.components.InputTextField;
+    import structs.location.Building;
 
     /**
      * TODO: documentation, general cleanup, REMOVE DEBUG STUFF
@@ -57,6 +63,7 @@ package views.map {
         private var _stage:Stage;
         // access injector properties
         private var _admin:Boolean;
+        private var _new_item_dialog:Dialog;
 
         private var _item_detail_dialog:Dialog;
         private var _detail_dialog_view:BaseDialogView;
@@ -124,8 +131,6 @@ package views.map {
             _target_pin = e.currentTarget as Pin;
             var assoc_item:MappableItem = _target_pin.linked_item;
 
-
-
             if (BaseDialogView.dialog_in_cache(assoc_item.id)) {
                 _detail_dialog_view = BaseDialogView.get_cached_dialog(assoc_item.id);
             } else {
@@ -137,9 +142,10 @@ package views.map {
                         _item_detail_dialog.message = '';
                         _item_detail_dialog.auto_resize = true;
                         _item_detail_dialog.title = assoc_item.id + " properties";
-                        _item_detail_dialog.add_component(_detail_dialog_view);
-                        _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
+                        _item_detail_dialog.component_container.removeChildren();
+                        _item_detail_dialog.addChild(_detail_dialog_view);
                         d.build_view(assoc_item.id);
+
                         // TODO: add edit button to dialog in order to modify props. this needs to be authenticated, though.
                         break;
 
@@ -147,9 +153,9 @@ package views.map {
                         break;
                 }
             }
-
-
-
+            if (_search_result_card && _search_result_card.parent) {
+                _search_result_card.close();
+            }
             /**
              * form components needed:
              *
@@ -169,6 +175,7 @@ package views.map {
              * * = can wait for implementation
              */
             _item_detail_dialog.open();
+            _item_detail_dialog.move(_target_pin.x + _image_container.x, _target_pin.y + _image_container.y);
         }
 
         private function item_in_cache(item:MappableItem):BaseDialogView {
@@ -184,6 +191,22 @@ package views.map {
             pin.x = pin.linked_item.position.x;
             pin.y = pin.linked_item.position.y;
             pin.addEventListener(MouseEvent.CLICK, on_pin_click);
+        }
+
+        public function add_name_label(item:MappableItem):void {
+            var name:PlainText = new PlainText(_image_container);
+            name.color = Color.PRODUCT_RED.value;
+            if (item is AssignableItem) {
+              var user:MappableUser = MappableItem.user_lookup.pull(AssignableItem(item).assignee) as MappableUser;
+              if (user) {
+                name.text = user.full_name;
+              } else {
+                name.text = item.id;
+              }
+            } else {
+              name.text = item.id;
+            }
+            name.move(item.position.x - (Component.PADDING * 2), item.position.y - (Component.PADDING * 2));
         }
 
         /**
@@ -237,7 +260,7 @@ package views.map {
         public function update(data:Object):void {
 
             if (data.hasOwnProperty('current_location')) {
-
+              var current_location:Building = data["current_location"];
             }
 
             if (data.hasOwnProperty('pan_position')) {
@@ -245,7 +268,9 @@ package views.map {
             }
 
             if (data.hasOwnProperty('new_pin')) {
-                add_pin(data['new_pin'] as Pin);
+                var new_pin:Pin = Pin(data['new_pin']);
+                add_name_label(new_pin.linked_item);
+                add_pin(new_pin);
             }
 
             if (data.hasOwnProperty('current_map_image')) {
@@ -297,6 +322,7 @@ package views.map {
                 _search_result_card.set_search_results(results);
             }
             //
+            _item_detail_dialog.close();
         }
 
         private function on_search_select(link:String, position:Point):void {
@@ -348,6 +374,9 @@ package views.map {
         }
 
         private function on_right_click(e:MouseEvent):void {
+          if (!_admin) {
+            return;
+          }
             e.preventDefault();
 
             // TODO: display context menu with easy actions
@@ -391,7 +420,7 @@ package views.map {
             if (e.currentTarget !== _context_menu) {
                 _on_context_menu_defocus.remove(on_context_menu_defocus);
                 remove_context_menu_listeners();
-                _context_menu.hide(true)
+                _context_menu.hide(true);
                 add_image_container_listeners();
             }
         }
@@ -401,6 +430,11 @@ package views.map {
             switch (list_item.label) {
                 case Contexts.CONTEXT_MAP_GENERAL_ADD_ITEM:
                     trace("item creation");
+                    if (!_new_item_dialog) {
+                      _new_item_dialog = new Dialog(this);
+                      var item_name_input:InputTextField = new InputTextField(_new_item_dialog.component_container,0,0,"Item Name")
+                    }
+
                     var location:MappableItem = new MappableItem();
                     location.position.x = _context_menu.x;
                     location.position.y = _context_menu.y;
@@ -416,6 +450,7 @@ package views.map {
 
         private function on_scroll_wheel(e:MouseEvent):void {
             // TODO: implement zoom
+
         }
 
         private function on_viewport_resize(e:NativeWindowBoundsEvent):void {

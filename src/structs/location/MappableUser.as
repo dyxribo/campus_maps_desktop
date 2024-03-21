@@ -99,6 +99,7 @@ package structs.location {
             user.staffing_type = json.staffing_type;
             user.title = json.title;
             user.business_criticality = json.business_criticality;
+            user.is_vip = json.vip;
 
             for (var id:String in json.desks) {
                 user.add_desk(id);
@@ -122,6 +123,7 @@ package structs.location {
             json.staffing_type = this._staffing_type;
             json.title = this._title;
             json.business_criticality = this._business_criticality;
+            json.vip = this._is_vip;
             json.desks = {};
             json.assets = {};
 

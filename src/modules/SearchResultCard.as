@@ -35,12 +35,11 @@ package modules {
 
         override public function draw(e:Event = null):void {
             // * have to move the component container first for everything to be positioned properly, as calculations are done with the containers' y property in mind.
-            component_container.move(PADDING, (PADDING*2) + _ICON_SIZE)
+            component_container.move(PADDING, (PADDING * 2) + _ICON_SIZE)
             // auto resize if enabled
             if (auto_resize) {
                 var totalW:Number = (PADDING * 2) + Math.max(component_container.width, option_container.width);
-                var totalH:Number = (PADDING * 3) +
-                component_container.height + option_container.height + _ICON_SIZE;
+                var totalH:Number = (PADDING * 3) + component_container.height + option_container.height + _ICON_SIZE;
 
                 if (totalW > MIN_WIDTH) {
                     _width_ = totalW;
@@ -86,18 +85,21 @@ package modules {
                 if (_result_display_cache.length > 0) {
                     result_display = _result_display_cache.pop();
                     result_display.label = result.label;
+                    add_child_to_container(result_display);
                 } else {
                     result_display = new SearchResultListItem(result.label);
+                    add_child_to_container(result_display);
+                    result_display.draw();
                 }
+                //
                 // set the object's properties based on type
                 if (result_item is MappableUser) {
-                  var result_user:MappableUser = result_item as MappableUser;
-                  result_display.label = result_user.full_name + "\n" + result_user.email + "\n" + result_user.title;
+                    var result_user:MappableUser = result_item as MappableUser;
+                    result_display.label = result_user.full_name + "\n" + result_user.email + "\n" + result_user.title;
                 } else {
-                  result_display.label = result_item.id + "\n" + result_item.type_string + "\n" + result_item.link;
+                    result_display.label = result_item.id + "\n" + result_item.type_string + "\n" + result_item.link;
                 }
                 result_display.data = {type: result.type};
-                add_child_to_container(result_display);
                 result_display.mouseEnabled = true;
                 result_display.data.item = result_item;
                 // * if the search result is a user, then we can show the info in the card itself, otherwise, we can pan the map to the location
@@ -119,11 +121,14 @@ package modules {
         }
 
         public function close():void {
+            if (_previous_view_button && _previous_view_button.parent) {
+                on_previous_button_click();
+            }
             on_close_card();
         }
 
         private function on_user_click(e:MouseEvent):void {
-          var item:MappableUser = MappableUser(e.currentTarget.data.item);
+            var item:MappableUser = MappableUser(e.currentTarget.data.item);
             if (!_previous_view_button) {
                 _previous_view_button = new Button();
                 _previous_view_button.icon = Icon.ARROW_BACK;
@@ -131,33 +136,33 @@ package modules {
             }
             add_child_native(_previous_view_button);
             removeChild(_close_card_button);
-            for (var k:int=0; k < component_container.numChildren; k++) {
-              _previous_cache.push(component_container.getChildAt(k));
+            for (var k:int = 0; k < component_container.numChildren; k++) {
+                _previous_cache.push(component_container.getChildAt(k));
             }
             component_container.removeChildren();
 
             var detail_view:UserDialogView = BaseDialogView.get_cached_dialog(item.username) as UserDialogView;
 
             if (detail_view) {
-              component_container.addChild(detail_view);
+                component_container.addChild(detail_view);
             } else {
-              detail_view = new UserDialogView();
-              detail_view.build_view(item.username);
-              component_container.addChild(detail_view);
+                detail_view = new UserDialogView();
+                detail_view.build_view(item.username);
+                component_container.addChild(detail_view);
             }
             // TODO: when displaying this view, if the pin click user view is also open, one of the views will disappear. since we're pooling objects in memory, we're only using the same object once, everywhere. i still want to do that, but maybe auto-close one dialog while the other is active.
             commit();
         }
 
         private function on_location_click(e:MouseEvent):void {
-          var item:MappableItem = SearchResultListItem(e.currentTarget).data.item as MappableItem;
-          _position_dispatcher.dispatch(item.link, item.position);
+            var item:MappableItem = SearchResultListItem(e.currentTarget).data.item as MappableItem;
+            _position_dispatcher.dispatch(item.link, item.position);
         }
 
-        private function on_previous_button_click(e:MouseEvent):void {
+        private function on_previous_button_click(e:MouseEvent = null):void {
             component_container.removeChildren();
-            for (var i:int=0; i < _previous_cache.length; i++) {
-              component_container.addChild(_previous_cache[i]);
+            for (var i:int = 0; i < _previous_cache.length; i++) {
+                component_container.addChild(_previous_cache[i]);
             }
             add_child_native(component_container);
             add_child_native(_close_card_button);
@@ -170,7 +175,7 @@ package modules {
         }
 
         public function get on_position_dispatch():Signal {
-          return _position_dispatcher;
+            return _position_dispatcher;
         }
     }
 }

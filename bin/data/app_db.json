@@ -17,6 +17,15 @@
                   "position": { "y": 127, "x": 1058 },
                   "id": "11W020"
                 },
+                "11W021": {
+                  "type": 5,
+                  "assignee": "ttest",
+                  "position": {
+                    "y": 187,
+                    "x": 1058
+                  },
+                  "id": "11W021"
+                },
                 "ddecamp": {
                   "type": 3,
                   "domain_string": "CN=DDecamp,CN=Users,DC=Americas,DC=daiwa,DC=region",
@@ -25,7 +34,7 @@
                   "first_name": "Deron",
                   "staffing_type": "EMP",
                   "mobile_phone": "555-444-5555",
-                  "vip": "false",
+                  "vip": false,
                   "username": "ddecamp",
                   "title": "Not an Officer",
                   "email": "deron.decamp@us.daiwacm.com",
@@ -48,16 +57,19 @@
                   "first_name": "Tonny",
                   "staffing_type": "CONS",
                   "mobile_phone": "555-444-5555",
-                  "vip": "false",
+                  "vip": true,
                   "username": "ttest",
-                  "title": "Not an Officer",
-                  "email": "tonny.test@blaxstar.net",
+                  "title": "Executive Director",
+                  "email": "tonny.test@us.daiwacm.com",
                   "business_criticality": "3",
                   "last_name": "Test",
                   "work_hours": {
                     "start_time": "10",
                     "end_time": "6",
                     "time_zone": "est"
+                  },
+                  "desks": {
+                    "11W021": "11W021"
                   }
                 }
               },

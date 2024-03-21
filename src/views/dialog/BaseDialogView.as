@@ -92,30 +92,31 @@ package views.dialog {
             } else {
                 var username:String = _item_assignee.label.replace("ASSIGNED USER: ", "");
                 if (!_sub_dialog) {
-                    _sub_dialog = new Dialog(_parent_dialog.parent);
+                    _sub_dialog = new Dialog();
+                    _sub_dialog.auto_resize = true;
+                    _sub_dialog.add_button("close", function():void {
+                        _parent_dialog.pop_dialog();
+                    });
                 }
-                if (!_dialog_view_cache || !_dialog_view_cache.hasOwnProperty(username)) {
+
+                if (_dialog_view_cache) {
+                  _dialog_view_cache ||= new Dictionary();
+                }
+
+                if (!_dialog_view_cache.hasOwnProperty(username)) {
                     // push new user dialog view
-                    _dialog_view_cache ||= new Dictionary();
                     var v:UserDialogView = new UserDialogView();
                     v.build_view(username);
                     _sub_dialog.move(_parent_dialog.x + PADDING, _parent_dialog.y + PADDING);
-                    _parent_dialog.enabled = false;
-                    _sub_dialog.add_button("close", function():void {
-                        _sub_dialog.close();
-                        _parent_dialog.enabled = true;
-                    });
                 } else {
                     v = _dialog_view_cache[username] as UserDialogView;
                     _sub_dialog.component_container.removeChildren();
-                    _sub_dialog.add_component(v);
-                    push_to_parent_dialog();
                 }
+
                 // initialize the user info dialog containing the info view
                 _sub_dialog.title = username + " properties";
-                _sub_dialog.auto_resize = true;
-                _sub_dialog.add_component(v);
-
+                _sub_dialog.addChild(v);
+                push_to_parent_dialog();
             }
         }
 
