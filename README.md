@@ -6,7 +6,7 @@ _An application for navigating and finding resources in (corporate) buildings._
 
 Campus Maps is an application that uses JSON and [custom components, utilities](https://github.com/blaxstar/starlib) and data structures in order to navigate any map, given its data.
 
-The application allow for an Admin mode where, given the proper credentials, a user would be able to make changes, such as add assets and users to a map. This will be authorized and authenticated via Oauth2.0.
+The application allows for an Admin mode where, given the proper credentials, a user would be able to make changes such as add assets and users to a map. This will be authorized and authenticated via Oauth2.0.
 
 The application is able to save the layout and positioning as a single JSON file and read it into the application on start up. 
 
