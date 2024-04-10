@@ -29,6 +29,7 @@ package {
     import thirdparty.com.lorentz.processing.ProcessExecutor;
     import thirdparty.com.hurlant.util.Base64;
     import net.blaxstar.starlib.networking.APIRequest;
+    import net.blaxstar.starlib.style.Color;
 
     /**
      * TODO: documentation
@@ -40,9 +41,9 @@ package {
         private var _search_bar:InputTextField;
         private var _search_bar_card:Card;
         // DB login controls
-        private var _db_login_prompt:Dialog;
-        private var _db_login_username_field:InputTextField;
-        private var _db_login_password_field:InputTextField;
+        private var _login_prompt:Dialog;
+        private var _login_username_field:InputTextField;
+        private var _login_secret_field:InputTextField;
         private var _db_login_submit_button:Button;
         // map
         private var _map_model:MapModel;
@@ -78,54 +79,56 @@ package {
 
         private function begin_auth():void {
 
-            _db_login_prompt = new Dialog(this, "LOGIN TO CAMPUS MAPS");
-            _db_login_username_field = new InputTextField(null, 0, 0, "username");
-            _db_login_password_field = new InputTextField(null, 0, 0, "password");
-            _db_login_password_field.display_as_password = true;
+            _login_prompt = new Dialog(this, "LOGIN TO CAMPUS MAPS");
+            _login_username_field = new InputTextField(null, 0, 0, "username");
+            _login_secret_field = new InputTextField(null, 0, 0, "password");
+            _login_secret_field.display_as_password = true;
 
-            _db_login_prompt.addChild(_db_login_username_field);
-            _db_login_prompt.addChild(_db_login_password_field);
-            _db_login_prompt.auto_resize = true;
-            _db_login_prompt.draggable = false;
+            _login_prompt.addChild(_login_username_field);
+            _login_prompt.addChild(_login_secret_field);
+            _login_prompt.auto_resize = true;
+            _login_prompt.draggable = false;
 
-            _db_login_prompt.move(stage.stageWidth / 2 + _db_login_prompt.width / 2, 0);
+            _login_prompt.move(stage.stageWidth / 2 + _login_prompt.width / 2, 0);
 
 
-            _db_login_prompt.add_button("continue as guest", load_map_data, Button.DEPRESSED);
-            _db_login_submit_button = _db_login_prompt.add_button("SUBMIT", on_login_form_submit, Button.GROUNDED);
+            _login_prompt.add_button("continue as guest", load_map_data, Button.DEPRESSED);
+            _db_login_submit_button = _login_prompt.add_button("SUBMIT", on_login_form_submit, Button.GROUNDED);
         }
 
         private function on_login_form_submit(e:MouseEvent):void {
-            DebugDaemon.write_debug("attempting to connect to server as %s...", _db_login_username_field.text);
-            _apiman.on_result_signal.add(test_on_login_result);
+            DebugDaemon.write_debug("attempting to connect to server as %s...", _login_username_field.text);
+            _login_prompt.message_color = Color.PRODUCT_BLUE.value;
+            _login_prompt.message = "logging in...";
+            _apiman.on_result_signal.add(on_login_result);
 
-            var request:APIRequest = _apiman.build_https_request("blaxstar.net", "server", URL.REQUEST_METHOD_POST, URL.DATA_FORMAT_VARIABLES, "/api/login", null, null, URL.AUTH_BASIC, Base64.encode(_db_login_username_field.text + ":" + _db_login_password_field.text));
+            var request:APIRequest = _apiman.build_https_request("blaxstar.net", "server", URL.REQUEST_METHOD_POST, URL.DATA_FORMAT_VARIABLES, "/api/login", null, null, URL.AUTH_BASIC, Base64.encode(_login_username_field.text + ":" + _login_secret_field.text));
 
             _apiman.send(request);
         }
 
-        private function test_on_login_result(result:String):void {
-            var decoded_response:String = Base64.decode(result).toString()
-            if (!StringUtil.is_empty_or_null(decoded_response)) {
+        private function on_login_result(result:String):void {
+            if (result.indexOf("200 OK") != -1) {
                 login_success(result);
-
             } else {
                 login_failure(result)
             }
-
-            init_map(JSON.parse(result));
         }
 
         private function login_success(response:Object):void {
 
         }
 
-        private function login_failure(response:Object):void {
-            DebugDaemon.write_debug("login failed. got: %s", response);
+        private function login_failure(response:String):void {
+            var server_message:String = JSON.parse(response.substring(response.indexOf("{\"message\":"), response.length)).message;
+
+            _login_prompt.message_color = Color.PRODUCT_RED.value;
+            _login_prompt.message = "login failed: " + server_message;
+            DebugDaemon.write_debug("login failed. got:\n\n%s", response);
         }
 
         private function load_map_data(e:Event = null):void {
-            _db_login_prompt.close();
+            _login_prompt.close();
             var map_data_file:File = new File(_MAP_DATA_FILEPATH);
             var map_data:String;
             _filestream.open(map_data_file, FileMode.READ);
