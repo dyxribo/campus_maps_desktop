@@ -5,15 +5,15 @@ package config {
     import flash.utils.ByteArray;
     import flash.net.registerClassAlias;
 
-import net.blaxstar.starlib.io.XLoader;
+    import net.blaxstar.starlib.io.XLoader;
 
-import thirdparty.org.osflash.signals.Signal;
+    import thirdparty.org.osflash.signals.Signal;
     import flash.utils.Dictionary;
 
     public class SaveData {
         static private const VERSION_MAJOR:uint = 0;
         static private const VERSION_MINOR:uint = 9;
-        static private const VERSION_REVISION:uint = 1861;
+        static private const VERSION_REVISION:uint = 1900;
         static private const FILE_EXTENSION:String = '.json';
 
         public const ON_SAVE:Signal = new Signal();
@@ -33,17 +33,17 @@ import thirdparty.org.osflash.signals.Signal;
         }
 
         public function init():void {
-          _settings = new Dictionary();
-          _settings['first_run'] = true;
-          _settings['current_locale'] = 'en_us';
-          _settings['last_location'] = '';
-          _settings['map_data_mod_date'] = '';
+            _settings = new Dictionary();
+            _settings['first_run'] = true;
+            _settings['current_locale'] = 'en_us';
+            _settings['last_location'] = '';
+            _settings['map_data_mod_date'] = '';
 
-          if (exists) {
-            load();
-          } else {
-            save();
-          }
+            if (exists) {
+                load();
+            } else {
+                save();
+            }
         }
 
         public function save():void {
@@ -51,7 +51,7 @@ import thirdparty.org.osflash.signals.Signal;
             var saveBytes:ByteArray = new ByteArray();
 
             for (var key:String in _settings) {
-              json[key] = _settings[key];
+                json[key] = _settings[key];
             }
 
             saveBytes.writeUTFBytes(JSON.stringify(json));
@@ -68,8 +68,9 @@ import thirdparty.org.osflash.signals.Signal;
         }
 
         public function load():void {
-            var url:URL = new URL(File.applicationDirectory.resolvePath(_configuration_file_name).nativePath + FILE_EXTENSION, undefined, true);
-
+            var url:URL = new URL(true);
+            url.endpoint = File.applicationDirectory.resolvePath(_configuration_file_name).nativePath + FILE_EXTENSION;
+            url.use_port = false;
             _loader.ON_COMPLETE.add(on_load_in);
             _loader.queue_files(url);
         }
@@ -100,6 +101,7 @@ import thirdparty.org.osflash.signals.Signal;
             }
             return _settings;
         }
+
         // getters; setters /////////////////////////////////////////////////////////////////////////////////////
 
         public function get application_title():String {
@@ -115,7 +117,7 @@ import thirdparty.org.osflash.signals.Signal;
         }
 
         public function get exists():Boolean {
-          return File.applicationDirectory.resolvePath(_configuration_file_name).exists;
+            return File.applicationDirectory.resolvePath(_configuration_file_name).exists;
         }
 
         /**

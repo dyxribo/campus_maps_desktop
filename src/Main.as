@@ -22,12 +22,13 @@ package {
     import views.map.MapView;
     import models.MapModel;
     import controllers.MapController;
-    import com.sociodox.utils.Base64;
     import net.blaxstar.starlib.utils.StringUtil;
     import flash.filesystem.FileStream;
     import flash.filesystem.FileMode;
     import models.AccessInjector;
     import thirdparty.com.lorentz.processing.ProcessExecutor;
+    import thirdparty.com.hurlant.util.Base64;
+    import net.blaxstar.starlib.networking.APIRequest;
 
     /**
      * TODO: documentation
@@ -67,40 +68,40 @@ package {
             Font.init();
 
             _savedata = new SaveData();
-            _savedata.ON_LOAD.add(load_map_data);
+            _savedata.ON_LOAD.add(begin_auth);
 
             stage.nativeWindow.title = _savedata.application_title_extended;
             _apiman = new APIRequestManager();
             _filestream = new FileStream();
             _savedata.load();
-
-            //begin_auth();
         }
 
         private function begin_auth():void {
 
-            _db_login_prompt = new Dialog(this, "Login to Campus Maps");
+            _db_login_prompt = new Dialog(this, "LOGIN TO CAMPUS MAPS");
             _db_login_username_field = new InputTextField(null, 0, 0, "username");
             _db_login_password_field = new InputTextField(null, 0, 0, "password");
             _db_login_password_field.display_as_password = true;
-            _db_login_submit_button = new Button(null, 0, 0, "SUBMIT");
+
             _db_login_prompt.addChild(_db_login_username_field);
             _db_login_prompt.addChild(_db_login_password_field);
-            _db_login_prompt.addChild(_db_login_submit_button);
-            _db_login_prompt.set_size(300, 300);
+            _db_login_prompt.auto_resize = true;
             _db_login_prompt.draggable = false;
 
-            _db_login_submit_button.on_click.add(on_login_form_submit);
+            _db_login_prompt.move(stage.stageWidth / 2 + _db_login_prompt.width / 2, 0);
 
+
+            _db_login_prompt.add_button("continue as guest", load_map_data, Button.DEPRESSED);
+            _db_login_submit_button = _db_login_prompt.add_button("SUBMIT", on_login_form_submit, Button.GROUNDED);
         }
 
         private function on_login_form_submit(e:MouseEvent):void {
             DebugDaemon.write_debug("attempting to connect to server as %s...", _db_login_username_field.text);
-            // TODO: submit form to api endpoint, wait for response. exclusively for syncing asset data and updates from the server.
-            _apiman.data_format = URL.DATA_FORMAT_TEXT;
-            _apiman.fake_signal.add(test_on_login_result);
-            _apiman.send_https_request("daiwa.test.com");
-            // TODO: credentials; basic with hashing & token: https://github.com/charlesbihis/actionscript-oauth2
+            _apiman.on_result_signal.add(test_on_login_result);
+
+            var request:APIRequest = _apiman.build_https_request("blaxstar.net", "server", URL.REQUEST_METHOD_POST, URL.DATA_FORMAT_VARIABLES, "/api/login", null, null, URL.AUTH_BASIC, Base64.encode(_db_login_username_field.text + ":" + _db_login_password_field.text));
+
+            _apiman.send(request);
         }
 
         private function test_on_login_result(result:String):void {
@@ -120,10 +121,11 @@ package {
         }
 
         private function login_failure(response:Object):void {
-
+            DebugDaemon.write_debug("login failed. got: %s", response);
         }
 
-        private function load_map_data():void {
+        private function load_map_data(e:Event = null):void {
+            _db_login_prompt.close();
             var map_data_file:File = new File(_MAP_DATA_FILEPATH);
             var map_data:String;
             _filestream.open(map_data_file, FileMode.READ);

@@ -34,6 +34,7 @@ package views.dialog {
             _item_type_field = new PlainText(this, 0, 0, "item type");
             _item_location = new PlainText(this, 0, 0, "item location");
             _item_assignee = new ListItem(this, 0, 0, "item assignee");
+            _item_assignee.fill_parent = true;
             _item_assignee.mouseEnabled = true;
             _item_assignee.useHandCursor = true;
             _item_assignee.addEventListener(MouseEvent.CLICK, on_assignee_click);
@@ -100,7 +101,7 @@ package views.dialog {
                 }
 
                 if (_dialog_view_cache) {
-                  _dialog_view_cache ||= new Dictionary();
+                    _dialog_view_cache ||= new Dictionary();
                 }
 
                 if (!_dialog_view_cache.hasOwnProperty(username)) {

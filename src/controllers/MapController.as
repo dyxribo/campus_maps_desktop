@@ -18,6 +18,8 @@ package controllers {
     import structs.location.MappableItem;
     import models.MapSearchResult;
     import structs.location.MappableUser;
+    import flash.utils.ByteArray;
+    import flash.display.BitmapData;
 
     public class MapController implements IMapImageLoaderSubject {
         private const _OBSERVER_LIST:Vector.<IMapImageLoaderObserver> = new Vector.<IMapImageLoaderObserver>();
@@ -59,16 +61,18 @@ package controllers {
         private function load_map_image():void {
             var floor_map_png:File = _model.ASSET_IMAGE_FOLDER.resolvePath(_model.current_location.id).resolvePath(_model.current_location.floor_id + ".png");
 
-            var img_req:URL = new URL(floor_map_png.nativePath);
+            var img_req:URL = new URL(true);
+            img_req.endpoint = floor_map_png.nativePath;
             img_req.use_port = false;
-            img_req.data_format = URL.DATA_FORMAT_GRAPHICS;
+            img_req.content_type = URL.DATA_FORMAT_GRAPHICS;
             _image_loader.ON_COMPLETE_GRAPHIC.add(on_image);
             _image_loader.queue_files(img_req);
         }
 
-        private function on_image(loaded_image:Bitmap):void {
+        private function on_image(loaded_image_bytes:BitmapData):void {
             // if the image was loaded, then it wasn't in the bmd cache, so put it there
-            _model.bitmap_data_cache[_model.current_location.floor_id] = loaded_image.bitmapData;
+            var img:Bitmap = new Bitmap(loaded_image_bytes);
+            _model.bitmap_data_cache[_model.current_location.floor_id] = img;
 
             if (!_view.context_menu.has_context(Contexts.CONTEXT_MAP_GENERAL)) {
                 // register contexts for context menu
@@ -84,9 +88,9 @@ package controllers {
                 _view.init_context_menu([context_map_general, context_map_item]);
             }
 
-            loaded_image.cacheAsBitmap = true;
-            loaded_image.cacheAsBitmapMatrix = new Matrix();
-            notify_observers({'on_map_image_load': loaded_image});
+            img.cacheAsBitmap = true;
+            img.cacheAsBitmapMatrix = new Matrix();
+            notify_observers({'on_map_image_load': img});
         }
 
         public function register_observer(observer:IMapImageLoaderObserver):void {
