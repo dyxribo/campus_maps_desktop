@@ -5,21 +5,13 @@ package structs.location {
     import structs.Map;
 
     public class Building extends Floor {
-        private const _LOCATION_LINK_PATTERN:RegExp = /^([a-zA-Z0-9]+)(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?$/;
-
-        public static const BUILDING_MATCH:uint = 0;
-        public static const FLOOR_MATCH:uint = 1;
-        public static const SUBSECTION_MATCH:uint = 2;
-        public static const EXACT_MATCH:uint = 3;
-        public static const NO_MATCH:int = -1;
 
         private var _floors:Map;
-        private var _building_id:String;
 
         // TODO: REMOVE DEBUG STUFF
         public function Building() {
             super();
-            this.id = "bldg" + Location.temp_assignments++;
+            this.id = "building" + Location.temp_assignments++;
             this.type = MappableItem.ITEM_BUILDING;
             this._floors = new Map(String, Floor);
         }
@@ -27,7 +19,7 @@ package structs.location {
         public function add_floor(floor:Floor):Floor {
             if (!this._floors.has(floor.id)) {
                 this._floors.put(floor.id, floor);
-                floor.prefix = building_id;
+                floor.prefix = _id;
             } else {
                 DebugDaemon.write_log("error adding floor to building object: the specified floor already exists.", DebugDaemon.WARN);
             }
@@ -57,41 +49,12 @@ package structs.location {
             return this._floors.has(id);
         }
 
-        public function get current_floor():Floor {
-            return has_floor(this.floor_id) ? get_floor(this.floor_id) : undefined;
-        }
-
-        public function get current_subsection():Subsection {
-            return current_floor ? current_floor.get_subsection(this.subsection_id) : undefined;
-        }
-
-        public function get current_item():MappableItem {
-            return current_subsection ? current_subsection.get_item(this.item_id) : undefined;
-        }
-
         public function get floors():Map {
             return this._floors;
         }
 
         public function set floors(value:Map):void {
             this._floors = value;
-        }
-
-        override public function get_subsection(subsection:String):Subsection {
-            var current_floor:Floor = get_floor(floor_id);
-            if (current_floor && current_floor.has_subsection(subsection)) {
-                return current_floor.get_subsection(subsection);
-            }
-            return undefined;
-        }
-
-        override public function get_item(item:String):MappableItem {
-            var current_floor:Floor = get_floor(floor_id);
-            var current_subsection:Subsection = current_floor.get_subsection(subsection_id);
-            if (current_subsection && current_subsection.has_item(item)) {
-                return current_subsection.get_item(item);
-            }
-            return undefined;
         }
 
         static public function read_json(json:Object):Building {
@@ -116,22 +79,6 @@ package structs.location {
             }
 
             return json;
-        }
-
-        override public function set id(value:String):void {
-            _building_id = this._id = value;
-        }
-
-        public function get building_id():String {
-            return _building_id;
-        }
-
-        public function set building_id(value:String):void {
-            _building_id = value;
-        }
-
-        override public function get link():String {
-            return _building_id;
         }
 
         override public function destroy():void {

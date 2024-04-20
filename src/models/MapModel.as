@@ -27,6 +27,7 @@ package models {
     import structs.location.Subsection;
 
     import thirdparty.org.osflash.signals.Signal;
+    import structs.location.Region;
 
     /**
      * TODO: CLASS DOCUMENTATION
@@ -41,16 +42,18 @@ package models {
         public static const SEARCH_SUBSECTION:uint = 6;
         public static const SEARCH_GENERIC_LOCATION:uint = 7;
         public static const SEARCH_ALL:uint = 8;
-        private const _LOCATION_LINK_PATTERN:RegExp = /^([a-zA-Z0-9]+)(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?$/;
-        private const _PATH_RESOLUTION_INDEX:Array = [5];
+        private const _LOCATION_LINK_PATTERN:RegExp = /^([a-zA-Z0-9]+)(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?(?:_([a-zA-Z0-9]+))?$/;
+        private const _PATH_RESOLUTION_TABLE:Array = [6];
+        private const _PATH_RESOLUTION_CACHE:Array = [6];
         private const _OBSERVER_LIST:Vector.<IObserver> = new Vector.<IObserver>();
 
         public const ASSET_IMAGE_FOLDER:File = File.applicationDirectory.resolvePath("assets").resolvePath("img");
 
         private var _observer_index_lookup:Dictionary;
+        private var _resolution_index:int;
         private var _previous_session_location_link:String;
-        private var _current_location:Building;
-        private var _buildings:Map;
+        private var _current_location:Region;
+        private var _regions:Map;
         private var _current_map_image:Bitmap;
         private var _bitmap_data_cache:Dictionary;
         private var _image_size:Point;
@@ -77,20 +80,20 @@ package models {
         public function read_json(json:Object):void {
             // if there is a current location, then data is already loaded into the app. reset the values in memory and prepare the variables to be written again
             if (_current_location) {
-                _buildings.iterate(function destroy_all(key:String, item:Building):void {
+                _regions.iterate(function destroy_all(key:String, item:Region):void {
                     item.destroy();
-                    delete _buildings[key];
+                    delete _regions[key];
                 });
 
                 MappableItem.destroy_lookups();
             } else {
-                _buildings = new Map(String, Building);
+                _regions = new Map(String, Region);
             }
 
-            for (var key:String in json.buildings) {
-                var building_raw:Object = json.buildings[key];
-                var building:Building = Building.read_json(building_raw);
-                _buildings.put(building.id, building);
+            for (var key:String in json.regions) {
+                var region_literal:Object = json.regions[key];
+                var region:Region = Region.read_json(region_literal);
+                _regions.put(region.id, region);
             }
 
             if (json.last_location) {
@@ -112,47 +115,6 @@ package models {
         }
 
         /**
-         * Tests a direct location link for validity.
-         * @param location_link the location link in the format `BLDG_FL_SS_ITM`.
-         * @return `MappableItem | null`
-         */
-        public function get_location(location_link:String):MappableItem {
-            var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
-
-            if (link_elements && link_elements.length) {
-                var building_id:String = link_elements[1] ? link_elements[1] : '';
-                var floor_id:String = link_elements[2] ? link_elements[2] : '';
-                var subsection_id:String = link_elements[3] ? link_elements[3] : '';
-                var item_id:String = link_elements[4] ? link_elements[4] : '';
-
-                if (!_buildings.has(building_id)) {
-                    return null;
-                } else {
-                    var bldg:Building = _buildings.pull(building_id) as Building;
-
-                    if (floor_id && bldg.has_floor(floor_id)) {
-                        var fl:Floor = bldg.get_floor(floor_id);
-
-                        if (subsection_id && fl.has_subsection(subsection_id)) {
-                            var ss:Subsection = fl.get_subsection(subsection_id);
-
-                            if (item_id && ss.has_item(item_id)) {
-                                return ss.get_item(item_id);
-                            } else {
-                                return ss;
-                            }
-                        } else {
-                            return fl;
-                        }
-                    } else {
-                        return bldg;
-                    }
-                }
-            }
-            return null;
-        }
-
-        /**
          *
          * @param location_id
          * @returns
@@ -162,31 +124,44 @@ package models {
             var notification_data:Object = {};
 
             if (resolvable) {
-                // the building and floor have to be resolvable via regex matches to make it here, so we can just assume the matches work
-                var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
+                // the path_resultion_cache array was recently updated by the test_path call, so the index values will be defined
+                _current_location = _PATH_RESOLUTION_CACHE[0] as Region;
+                _pan_position ||= new Point(0, 0);
+                // nothing after region is guaranteed, so now we just double check for building, floor, subsections and general mappable items
+                if (_PATH_RESOLUTION_TABLE[1] == 1) {
+                    // set the building since its resolvable
+                    var matched_building:Building = _PATH_RESOLUTION_CACHE[1];
+                    _current_location.building_id = matched_building.id;
+                    _pan_position.set(matched_building.x, matched_building.y);
+                }
 
-                _current_location = _buildings.pull(link_elements[1]) as Building;
-                _current_location.floor_id = link_elements[2];
+                if (_PATH_RESOLUTION_TABLE[2] == 1) {
+                    // set the floor since its resolvable
+                    var matched_floor:Floor = _PATH_RESOLUTION_CACHE[2];
+                    _current_location.floor_id = matched_floor.id;
+                    _pan_position.set(matched_floor.x, matched_floor.y);
+                }
 
-                // nothing after floor is guaranteed, since technically a floor link is valid. so now we just double check for subsections and general mappable items
-                if (_PATH_RESOLUTION_INDEX[2] == 1) {
+                if (_PATH_RESOLUTION_TABLE[3] == 1) {
                     // subsection is resolvable, so add that sucker in there
-                    _current_location.subsection_id = link_elements[3];
-                    _pan_position.copy(_current_location.current_subsection.get_registration_point());
-                    notification_data['pan_position'] = _pan_position;
+                    var matched_subsection:Subsection = _PATH_RESOLUTION_CACHE[3];
+                    _current_location.subsection_id = matched_subsection.id;
+                    _pan_position.set(matched_subsection.x, matched_subsection.y);
                 }
 
-                if (_PATH_RESOLUTION_INDEX[3] == 1) {
+                if (_PATH_RESOLUTION_TABLE[4] == 1) {
                     // this link is resolvable down to the item level! how nice!
-                    _current_location.item_id = link_elements[4];
-                    _pan_position.copy(_current_location.current_item.position);
-                    notification_data['pan_position'] = pan_position;
-                }
+                    var matched_item:MappableItem = _PATH_RESOLUTION_CACHE[4];
+                    _current_location.item_id = matched_item.id;
+                    _pan_position.set(matched_item.x, matched_item.y);
 
+                }
+                // set the notification data and dispatch
+                notification_data['pan_position'] = pan_position;
                 notification_data['current_location'] = current_location;
                 notify_observers(notification_data);
             } else {
-                DebugDaemon.write_error("cannot display map: the location link is not resolvable. got: %s", location_link);
+                DebugDaemon.write_debug("cannot display map: the location link is not resolvable. got: %s", location_link);
                 return;
             }
         }
@@ -197,53 +172,84 @@ package models {
          * @return `Boolean`
          */
         public function test_path(location_link:String):Boolean {
-            var navigable:Boolean = get_location(location_link);
 
             var link_elements:Array = location_link.match(this._LOCATION_LINK_PATTERN);
 
             // if the link matches the proper format, lets break it down and double check
             if (link_elements.length) {
-                var building_id:String = link_elements[1] ? link_elements[1] : '';
-                var floor_id:String = link_elements[2] ? link_elements[2] : '';
-                var subsection_id:String = link_elements[3] ? link_elements[3] : '';
-                var item_id:String = link_elements[4] ? link_elements[4] : '';
+                // the first element is the original string, so skip index 0
+                var region_id:String = link_elements[1] ? link_elements[1] : '';
+                var building_id:String = link_elements[2] ? link_elements[2] : '';
+                var floor_id:String = link_elements[3] ? link_elements[3] : '';
+                var subsection_id:String = link_elements[4] ? link_elements[4] : '';
+                var item_id:String = link_elements[5] ? link_elements[5] : '';
 
-                // at minimum, we need a building and a floor, since we can't display anything less than a floor map
-                if (!_buildings.has(building_id)) {
+                if (!_regions.has(region_id)) {
                     return null;
                 } else {
-                    var bldg:Building = _buildings.pull(building_id) as Building;
-                    // if the link is looking for a floor, and the floor id is valid...
-                    if (floor_id && bldg.has_floor(floor_id)) {
-                        var fl:Floor = bldg.get_floor(floor_id);
-                        // ...and the floor has a subsection and the subsection id is valid...
-                        if (subsection_id && fl.has_subsection(subsection_id)) {
-                            var ss:Subsection = fl.get_subsection(subsection_id);
-                            // and the subsection has an item and the item id is valid...
-                            if (item_id && ss.has_item(item_id)) {
-                                // then the link is fully resolvable!
-                                set_resolution_index(1, 1, 1, 1);
-                                return true;
+                    var matched_region:Region = _regions.pull(region_id) as Region;
+                    // if the building id is valid (building exists in this region)...
+                    if (building_id && matched_region.has_building(building_id)) {
+                        var matched_building:Building = matched_region.get_building(building_id) as Building;
+                        // ...and the floor id is valid...
+                        if (floor_id && matched_building.has_floor(floor_id)) {
+                            var matched_floor:Floor = matched_building.get_floor(floor_id);
+                            // ...and the subsection id is valid...
+                            if (subsection_id && matched_floor.has_subsection(subsection_id)) {
+                                var matched_subsection:Subsection = matched_floor.get_subsection(subsection_id);
+                                // and item id is valid...
+                                if (item_id && matched_subsection.has_item(item_id)) {
+                                    // then the link is fully resolvable!
+                                    var matched_item:MappableItem = matched_subsection.get_item(item_id);
+
+                                    set_resolution_index(1, 1, 1, 1, 1);
+                                    set_resolution_cache(matched_region, matched_building, matched_floor, matched_subsection, matched_item);
+                                    return true;
+                                } else {
+                                    // otherwise, the link is resolvable up to the subsection at least!
+                                    set_resolution_index(1, 1, 1, 1);
+                                    set_resolution_cache(matched_region, matched_building, matched_floor, matched_subsection);
+                                    return true;
+                                }
                             } else {
-                                // otherwise, the link is resolvable up to the subsection at least!
-                                set_resolution_index(1, 1, 1, 0);
+                                // otherwise, the link is resolvable up to the floor at least!
+                                set_resolution_index(1, 1, 1);
+                                set_resolution_cache(matched_region, matched_building, matched_floor);
                                 return true;
                             }
                         } else {
-                            // otherwise, the link is resolvable up to the floor at least!
-                            set_resolution_index(1, 1, 0, 0);
+                            // otherwise, the link is resolvable up to the building at least!
+                            set_resolution_index(1, 1);
+                            set_resolution_cache(matched_region, matched_building);
                             return true;
                         }
                     } else {
-                        // otherwise, the building is resolvable, but that's not enough :(
-                        set_resolution_index(1, 0, 0, 0);
-                        return false;
+                        // otherwise, the link is resolvable only up to the region
+                        set_resolution_index(1);
+                        set_resolution_cache(matched_region);
+                        return true;
                     }
                 }
             }
             // otherwise we have nothing. all is lost.
-            set_resolution_index(0, 0, 0, 0);
+            set_resolution_index();
+            set_resolution_cache();
             return false;
+        }
+
+        /**
+         * caches the located map items from the last `test_path()` call.
+         * @param building
+         * @param floor
+         * @param subsection
+         * @param item
+         */
+        private function set_resolution_cache(region:Region = null, building:Building = null, floor:Floor = null, subsection:Subsection = null, item:MappableItem = null):void {
+            _PATH_RESOLUTION_CACHE[0] = region;
+            _PATH_RESOLUTION_CACHE[1] = building;
+            _PATH_RESOLUTION_CACHE[2] = floor;
+            _PATH_RESOLUTION_CACHE[3] = subsection;
+            _PATH_RESOLUTION_CACHE[4] = item;
         }
 
         /**
@@ -253,11 +259,13 @@ package models {
          * @param subsection
          * @param item
          */
-        private function set_resolution_index(building:int, floor:int, subsection:int, item:int):void {
-            _PATH_RESOLUTION_INDEX[0] = building;
-            _PATH_RESOLUTION_INDEX[1] = floor;
-            _PATH_RESOLUTION_INDEX[2] = subsection;
-            _PATH_RESOLUTION_INDEX[3] = item;
+        private function set_resolution_index(region:int = 0, building:int = 0, floor:int = 0, subsection:int = 0, item:int = 0):void {
+            _PATH_RESOLUTION_TABLE[0] = region;
+            _PATH_RESOLUTION_TABLE[1] = building;
+            _PATH_RESOLUTION_TABLE[2] = floor;
+            _PATH_RESOLUTION_TABLE[3] = subsection;
+            _PATH_RESOLUTION_TABLE[4] = item;
+            _resolution_index = region + building + floor + subsection + item;
         }
 
         /**
@@ -269,9 +277,24 @@ package models {
             var results:Vector.<MappableItem> = new Vector.<MappableItem>();
             // if the query is a direct link, then return the exact match.
             // otherwise, search everything and return what's found.
-            var item_reference:MappableItem = get_location(query);
-            if (item_reference) {
-                // direct link
+            var link_resolvable:Boolean = test_path(query);
+
+            var item_reference:MappableItem;
+            if (link_resolvable) {
+                // push result based on the level of resolvability defined from `test_path()`
+                if (_resolution_index == 1) {
+                    item_reference = _PATH_RESOLUTION_CACHE[0];
+                } else if (_resolution_index == 2) {
+                    item_reference = _PATH_RESOLUTION_CACHE[1];
+                } else if (_resolution_index == 3) {
+                    item_reference = _PATH_RESOLUTION_CACHE[2];
+                } else if (_resolution_index == 4) {
+                    item_reference = _PATH_RESOLUTION_CACHE[3];
+                } else if (_resolution_index == 5) {
+                    item_reference = _PATH_RESOLUTION_CACHE[4];
+                } else {
+                    return results;
+                }
                 results.push(item_reference);
             } else {
                 // something else, respect search_by
@@ -335,7 +358,7 @@ package models {
 
             /*
                then look for approximate matches
-               var approximate_matches:Array = findCloseTerms(query);
+               var approximate_matches:Array = find_close_terms(query);
 
                if (approximate_matches.length === 1 && (approximate_matches[0] as String) === building.id) {
                discard the matches if the only one is the exact match we should have found already
@@ -379,10 +402,13 @@ package models {
 
         private function find_close_terms(query:String, maxDistance:int = 2):Array {
             var closeTerms:Array = [];
-            for each (var item_id:String in MappableItem.item_lookup) {
+            MappableItem.item_lookup.iterate(function():void {
                 if (StringUtil.levenshtein(query, item_id) <= maxDistance) {
                     closeTerms.push(item_id);
                 }
+            })
+            for each (var item_id:String in MappableItem.item_lookup) {
+
             }
 
             for each (var desk_id:String in MappableItem.desk_lookup) {
@@ -396,11 +422,23 @@ package models {
 
         /**
          *
-         * @param building_id
+         * @param region_id
          * @returns
          */
-        private function building_exists(building_id:String):Boolean {
-            return this._buildings.has(building_id);
+        private function region_exists(region_id:String):Boolean {
+            return this._regions.has(region_id);
+        }
+
+        /**
+         * checks if the building with the provided id exists in the current region.
+         * @param building_id the building id to search.
+         * @returns true if the building is found, false otherwise.
+         */
+        private function building_in_region(building_id:String):Boolean {
+            if (this._current_location) {
+                return this._current_location.has_building(building_id);
+            }
+            return false;
         }
 
         /**
@@ -422,9 +460,7 @@ package models {
          */
         private function subsection_in_floor(subsection_id:String):Boolean {
             if (this.floor_in_building(this._current_location.floor_id)) {
-                if (this._current_location.get_floor(this._current_location.floor_id).has_subsection(subsection_id)) {
-                    return true;
-                }
+                return this._current_location.get_floor(this._current_location.floor_id).has_subsection(subsection_id);
             }
             return false;
         }
@@ -488,9 +524,9 @@ package models {
                             "y": 0
                         }
                     },
-                    buildings: {}};
+                    regions: {}};
 
-            var buildings_dict:Dictionary = this._buildings.get_dictionary();
+            var buildings_dict:Dictionary = this._regions.get_dictionary();
             for (var key:Object in buildings_dict) {
                 json.buildings[key] = buildings_dict[key].write_json();
             }
@@ -522,21 +558,21 @@ package models {
             }
         }
 
-        public function get current_location():Building {
+        public function get current_location():Region {
             return _current_location;
         }
 
-        public function set current_location(value:Building):void {
+        public function set current_location(value:Region):void {
             _current_location = value;
             notify_observers({'current_location': value});
         }
 
-        public function get buildings():Map {
-            return _buildings;
+        public function get regions():Map {
+            return _regions;
         }
 
-        public function set buildings(value:Map):void {
-            _buildings = value;
+        public function set regions(value:Map):void {
+            _regions = value;
             notify_observers({'buildings': value});
         }
 

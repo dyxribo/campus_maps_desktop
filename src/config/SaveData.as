@@ -1,78 +1,82 @@
 package config {
-    import net.blaxstar.starlib.io.URL;
-    import net.blaxstar.starlib.io.IOUtil;
     import flash.filesystem.File;
-    import flash.utils.ByteArray;
-    import flash.net.registerClassAlias;
+    import flash.filesystem.FileMode;
+    import flash.filesystem.FileStream;
+    import flash.utils.Dictionary;
 
     import net.blaxstar.starlib.io.XLoader;
 
     import thirdparty.org.osflash.signals.Signal;
-    import flash.utils.Dictionary;
 
     public class SaveData {
         static private const VERSION_MAJOR:uint = 0;
         static private const VERSION_MINOR:uint = 9;
-        static private const VERSION_REVISION:uint = 1917;
-        static private const FILE_EXTENSION:String = '.json';
+        static private const VERSION_REVISION:uint = 2109;
+        static private const _CONFIG_FILE:File = File.applicationStorageDirectory.resolvePath("config.json");
 
         public const ON_SAVE:Signal = new Signal();
         public const ON_LOAD:Signal = new Signal();
         public const ON_CLEARED:Signal = new Signal();
         public const ON_INITIALIZED:Signal = new Signal();
 
-        private var _configuration_file_name:String;
         private var _settings:Dictionary;
         private var _loader:XLoader;
+        private var _filestream:FileStream;
 
         public function SaveData() {
-            _configuration_file_name = 'config';
             _loader = new XLoader();
 
+            _filestream = new FileStream();
             init();
         }
 
         public function init():void {
-            _settings = new Dictionary();
-            _settings['first_run'] = true;
-            _settings['current_locale'] = 'en_us';
-            _settings['last_location'] = '';
-            _settings['map_data_mod_date'] = '';
+            _settings ||= new Dictionary();
 
             if (exists) {
                 load();
             } else {
+                _settings['first_run'] = true;
+                _settings['current_locale'] = 'en_us';
+                _settings['last_location'] = '';
+                _settings['map_data_mod_date'] = '';
                 save();
             }
         }
 
         public function save():void {
             var json:Object = {};
-            var saveBytes:ByteArray = new ByteArray();
 
             for (var key:String in _settings) {
                 json[key] = _settings[key];
             }
+            var savedata_string:String = JSON.stringify(json);
 
-            saveBytes.writeUTFBytes(JSON.stringify(json));
-            IOUtil.exportFile(saveBytes, _configuration_file_name, FILE_EXTENSION, File.applicationDirectory.nativePath, on_write_out);
+            _filestream.open(_CONFIG_FILE, FileMode.WRITE);
+            _filestream.writeUTFBytes(savedata_string);
+            _filestream.close();
+
+            ON_SAVE.dispatch();
         }
 
         public function clear():void {
-            File.applicationDirectory.resolvePath(_configuration_file_name).deleteFile();
+            _CONFIG_FILE.deleteFile();
 
             for (var key:String in _settings) {
                 _settings[key] = null;
             }
+
             ON_CLEARED.dispatch();
         }
 
         public function load():void {
-            var url:URL = new URL(true);
-            url.endpoint = File.applicationDirectory.resolvePath(_configuration_file_name).nativePath + FILE_EXTENSION;
-            url.use_port = false;
-            _loader.ON_COMPLETE.add(on_load_in);
-            _loader.queue_files(url);
+            var savedata_string:String;
+
+            _filestream.open(_CONFIG_FILE, FileMode.READ);
+            savedata_string = _filestream.readUTFBytes(_filestream.bytesAvailable);
+            _filestream.close();
+
+            on_load_in(savedata_string);
         }
 
         private function create_save_data():void {
@@ -82,19 +86,13 @@ package config {
             ON_INITIALIZED.dispatch();
         }
 
-        private function on_load_in(data:ByteArray):void {
-            _loader.ON_COMPLETE.remove(on_load_in);
-            _settings = to_dictionary(JSON.parse(data.readUTFBytes(data.bytesAvailable)));
+        private function on_load_in(savedata_string:String):void {
+            var savedata_json:Object = JSON.parse(savedata_string);
+            consume_json(savedata_json);
             ON_LOAD.dispatch();
         }
 
-        private function on_write_out(return_code:uint):void {
-            if (return_code == 0) {
-                ON_SAVE.dispatch();
-            }
-        }
-
-        private function to_dictionary(json:Object):Dictionary {
+        private function consume_json(json:Object):Dictionary {
             for (var key:String in json) {
                 _settings[key] = json[key];
                 delete json[key];
@@ -102,7 +100,7 @@ package config {
             return _settings;
         }
 
-        // getters; setters /////////////////////////////////////////////////////////////////////////////////////
+        // * GETTERS & SETTERS * //
 
         public function get application_title():String {
             return 'CAMPUS MAPS ADMIN';
@@ -117,7 +115,7 @@ package config {
         }
 
         public function get exists():Boolean {
-            return File.applicationDirectory.resolvePath(_configuration_file_name).exists;
+            return _CONFIG_FILE.exists;
         }
 
         /**

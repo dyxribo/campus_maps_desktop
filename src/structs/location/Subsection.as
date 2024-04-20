@@ -7,14 +7,12 @@ package structs.location {
     import geom.Point;
 
     public class Subsection extends MappableItem {
-        private var _registration_point:Point;
         private var _items:Map;
-        private var _subsection_id:String;
 
         // TODO: REMOVE DEBUG STUFF
         public function Subsection() {
             super();
-            this.id = "sbsc" + Location.temp_assignments++;
+            this.id = "subsection" + Location.temp_assignments++;
             this.type = MappableItem.ITEM_SUBSECTION;
             this._items = new Map(String, MappableItem);
         }
@@ -25,7 +23,7 @@ package structs.location {
                 return false;
             }
             this._items.put(item.id, item);
-            item.prefix = prefix + "_" + _subsection_id;
+            item.prefix = prefix + "_" + this._id;
             return true;
         }
 
@@ -55,8 +53,8 @@ package structs.location {
             var subsection:Subsection = new Subsection();
             subsection.id = json.id;
             subsection._items = new Map(String, MappableItem);
+            subsection._position = Point.read_json(json.position);
             subsection.prefix = json.prefix;
-            subsection.set_registration_point(json.registration_point.x, json.registration_point.y);
 
             for (var key:Object in json.items) {
                 var current_item:Object = json.items[key];
@@ -92,7 +90,7 @@ package structs.location {
         override public function write_json():Object {
             var items_json:Object = {};
             var items_dict:Dictionary = _items.get_dictionary();
-            var registration_point_json:Object = _registration_point.write_json();
+
             for (var key:Object in items_dict) {
 
                 items_json[key] = items_dict[key].write_json();
@@ -100,7 +98,6 @@ package structs.location {
             var json:Object = super.write_json();
             json.items = items_json;
             json.prefix = prefix;
-            json.registation_point = registration_point_json;
             return json;
         }
 
@@ -110,30 +107,8 @@ package structs.location {
             });
         }
 
-        override public function set id(value:String):void {
-            _subsection_id = this._id = value;
-        }
-
-        public function get subsection_id():String {
-            return _subsection_id;
-        }
-
-        public function set subsection_id(value:String):void {
-            _subsection_id = value;
-        }
-
-        public function get_registration_point():Point {
-            return _registration_point;
-        }
-
-        public function set_registration_point(x:int, y:int):void {
-            _registration_point ||= new Point(0, 0);
-            _registration_point.x = x;
-            _registration_point.y = y;
-        }
-
         override public function get link():String {
-            return prefix ? prefix + "_" + _subsection_id : _subsection_id;
+            return prefix ? prefix + "_" + this._id : this._id;
         }
     }
 

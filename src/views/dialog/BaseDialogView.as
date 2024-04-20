@@ -128,7 +128,7 @@ package views.dialog {
         public function build_view(id:String):void {
             var u:MappableItem = MappableItem.user_lookup.pull(id) as MappableItem;
             // initialize the information view component for the dialog
-            set_name_field(u.item_id);
+            set_name_field(u.id);
             set_type_field(u.type_string);
             set_location_field(u.link);
             set_assignee_field((u.hasOwnProperty("assignee") ? u["assignee"] : "unknown"));

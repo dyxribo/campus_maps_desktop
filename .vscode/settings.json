@@ -1,5 +1,5 @@
 {
-  "as3mxml.sdk.framework": "c:\\airsdk",
+  "as3mxml.sdk.framework": "c:\\airsdk_harman",
   "[python]": {
     "editor.defaultFormatter": "ms-python.autopep8"
   },
@@ -13,4 +13,5 @@
     "editor.wordWrap": "bounded",
     "editor.wordWrapColumn": 80,
   },
+  "as3mxml.quickCompile.enabled": false,
 }

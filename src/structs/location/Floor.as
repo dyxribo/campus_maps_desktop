@@ -9,12 +9,11 @@ package structs.location {
 
         private var _subsections:Map;
         private var _on_single_vlan:Boolean;
-        private var _floor_id:String;
 
         // TODO: REMOVE DEBUG STUFF
         public function Floor() {
             super();
-            this.id = "flr" + Location.temp_assignments++;
+            this.id = "floor" + Location.temp_assignments++;
             this.type = MappableItem.ITEM_FLOOR;
             this._subsections = new Map(String, Subsection);
             this._on_single_vlan = false;
@@ -26,7 +25,7 @@ package structs.location {
                 return false;
             } else {
                 this._subsections.put(subsection.id, subsection);
-                subsection.prefix = prefix + "_" + _floor_id;
+                subsection.prefix = prefix + "_" + this._id;
                 if (this._subsections.size > 1) {
                     this._on_single_vlan = false;
                 }
@@ -99,19 +98,11 @@ package structs.location {
         }
 
         override public function get link():String {
-            return prefix ? prefix + "_" + _floor_id : _floor_id;
+            return prefix ? prefix + "_" + this._id : this._id;
         }
 
         override public function set id(value:String):void {
-            _floor_id = this._id = value;
-        }
-
-        public function get floor_id():String {
-            return _floor_id;
-        }
-
-        public function set floor_id(value:String):void {
-            _floor_id = value;
+            this._id = value;
         }
     }
 

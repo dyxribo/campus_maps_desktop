@@ -51,7 +51,7 @@ package controllers {
 
             for (var i:int = 0; i < results.length; i++) {
                 var current_result:MappableItem = results[i];
-                var current_msr:MapSearchResult = new MapSearchResult(current_result.item_id, current_result.position, (current_result is MappableUser) ? MapSearchResult.USER : MapSearchResult.LOCATION, {"item": current_result});
+                var current_msr:MapSearchResult = new MapSearchResult(current_result.id, current_result.position, (current_result is MappableUser) ? MapSearchResult.USER : MapSearchResult.LOCATION, {"item": current_result});
                 formatted_results.push(current_msr);
             }
 
@@ -59,7 +59,12 @@ package controllers {
         }
 
         private function load_map_image():void {
-            var floor_map_png:File = _model.ASSET_IMAGE_FOLDER.resolvePath(_model.current_location.id).resolvePath(_model.current_location.floor_id + ".png");
+            if (!_model.current_location) {
+                // TODO: display error, map not found.
+                return;
+            }
+
+            var floor_map_png:File = _model.ASSET_IMAGE_FOLDER.resolvePath(_model.current_location.id).resolvePath(_model.current_location.building_id).resolvePath(_model.current_location.floor_id + ".png");
 
             var img_req:URL = new URL(true);
             img_req.endpoint = floor_map_png.nativePath;

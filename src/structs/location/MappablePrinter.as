@@ -14,7 +14,7 @@ package structs.location {
         static public function read_json(json:Object):MappablePrinter {
             var item:MappablePrinter = new MappablePrinter();
             item.id = json.id;
-            item.position = json.position;
+            item._position = json.position;
             item.assignee = json.assignee;
             item.model_name = json.model_name;
             item.mac_address = json.mac_address;

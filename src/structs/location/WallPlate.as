@@ -2,6 +2,7 @@ package structs.location {
     import flash.utils.Dictionary;
 
     import structs.Map;
+    import geom.Point;
 
     public class WallPlate extends MappableItem {
         static private var _plate_lookup:Map;
@@ -79,7 +80,7 @@ package structs.location {
         static public function read_json(json:Object):WallPlate {
             var item:WallPlate = new WallPlate();
             item.id = json.id;
-            item.position = json.position;
+            item._position = Point.read_json(json.position);
 
             for (var plate:String in json.plates) {
                 _plates.put(plate, json[plate]);

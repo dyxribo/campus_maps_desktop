@@ -12,7 +12,8 @@ package structs.location {
         static public var temp_assignments:uint = 0;
 
         protected var _id:String;
-        private var _position:Point;
+        protected var _position:Point;
+        protected var _is_modified:Boolean;
 
         //public var current_subsection_id:String;
         //public var current_item_id:String;
@@ -20,7 +21,7 @@ package structs.location {
         public function Location() {
             super();
             this._id ||= 'new_location' + Location.temp_assignments++;
-            this.position ||= new Point(0, 0);
+            this._position ||= new Point(0, 0);
             //this.current_floor_id = '';
             //this.current_subsection_id = '';
             //this.current_item_id = '';
@@ -34,13 +35,13 @@ package structs.location {
         static public function read_json(json:Object):Location {
             var location:Location = new Location();
             location.id = json.id;
-            location.position = Point.read_json(json.position);
+            location._position = Point.read_json(json.position);
             return location;
         }
 
         public function write_json():Object {
             return {"id": this.id,
-                    "position": this.position.write_json()};
+                    "position": this._position.write_json()};
         }
 
         public function get id():String {
@@ -48,15 +49,36 @@ package structs.location {
         }
 
         public function set id(value:String):void {
-            _id = value;
+            if (this._id != value) {
+                this._is_modified = true;
+            }
+            this._id = value;
         }
 
         public function get position():Point {
             return _position;
         }
 
-        public function set position(value:Point):void {
-            _position = value;
+        public function get x():int {
+            return _position.x;
+        }
+
+        public function set x(value:int):void {
+            if (_position.x != value) {
+                _is_modified = true;
+            }
+            _position.x = value;
+        }
+
+        public function get y():int {
+            return _position.y;
+        }
+
+        public function set y(value:int):void {
+            if (_position.y != value) {
+                _is_modified = true;
+            }
+            _position.y = value;
         }
     }
 }

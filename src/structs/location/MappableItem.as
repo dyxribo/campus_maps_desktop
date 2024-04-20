@@ -18,25 +18,24 @@ package structs.location {
         static public var wall_plate_lookup:Map;
         static public var pin_lookup:Vector.<Pin>;
 
-        static public const ITEM_BUILDING:uint = 0;
-        static public const ITEM_FLOOR:uint = 1;
-        static public const ITEM_SUBSECTION:uint = 2;
-        static public const ITEM_USER:uint = 3;
-        static public const ITEM_WORKSTATION:uint = 4;
-        static public const ITEM_DESK:uint = 5;
-        static public const ITEM_PRINTER:uint = 6;
-        static public const ITEM_WALL_JACK:uint = 7;
-        static public const ITEM_WALL_PLATE:uint = 8;
-        static public const ITEM_GENERIC:uint = 9;
+        static public const ITEM_REGION:uint = 0;
+        static public const ITEM_BUILDING:uint = 1;
+        static public const ITEM_FLOOR:uint = 2;
+        static public const ITEM_SUBSECTION:uint = 3;
+        static public const ITEM_USER:uint = 4;
+        static public const ITEM_WORKSTATION:uint = 5;
+        static public const ITEM_DESK:uint = 6;
+        static public const ITEM_PRINTER:uint = 7;
+        static public const ITEM_WALL_JACK:uint = 8;
+        static public const ITEM_WALL_PLATE:uint = 9;
+        static public const ITEM_GENERIC:uint = 10;
 
         private var _type:uint;
-        private var _position:Point;
-        private var _item_id:String;
         private var _prefix:String;
         private var _modified:Boolean;
 
         public function MappableItem() {
-            this._id ||= 'itm' + Location.temp_assignments++;
+            this._id ||= 'item' + Location.temp_assignments++;
             this._type ||= MappableItem.ITEM_GENERIC;
             this._position ||= new Point(0, 0);
             add_to_directory(this);
@@ -94,7 +93,7 @@ package structs.location {
                 pin_lookup = new Vector.<Pin>();
             }
 
-            if (!(val is Building) && !(val is Floor) && !(val is Subsection) && !(val is MappableUser)) {
+            if (!(val is Region) && !(val is Building) && !(val is Floor) && !(val is Subsection) && !(val is MappableUser)) {
                 var pin:Pin = new Pin(null, val);
                 pin.on_color = Color.PRODUCT_RED.value;
                 pin_lookup.push(pin);
@@ -105,7 +104,7 @@ package structs.location {
             var item:MappableItem = new MappableItem();
             item.id = json.id;
             item.type = json.type;
-            item.position = Point.read_json(json.position)
+            item._position = Point.read_json(json.position)
 
             return item;
         }
@@ -117,7 +116,7 @@ package structs.location {
         }
 
         public function destroy():void {
-            _position.x = _position.y = 0;
+            x = y = 0;
         }
 
         /**
@@ -156,11 +155,13 @@ package structs.location {
         }
 
         public function get link():String {
-            return _prefix ? prefix + "_" + _item_id.toUpperCase() : _item_id.toUpperCase();
+            var uppercase_id:String = this._id.toUpperCase();
+
+            return _prefix ? prefix + "_" + uppercase_id : uppercase_id;
         }
 
         /**
-         * returns prefix in the format `bldg_fl_ss_`.
+         * returns prefix in the format `region_building_floor_subsection_`.
          * @return
          */
         public function get prefix():String {
@@ -172,7 +173,7 @@ package structs.location {
         }
 
         override public function set id(value:String):void {
-            _item_id = this._id = value;
+            this._id = value;
         }
 
         public function get type():uint {
@@ -181,14 +182,6 @@ package structs.location {
 
         public function set type(value:uint):void {
             this._type = value;
-        }
-
-        public function get item_id():String {
-            return _item_id;
-        }
-
-        public function set item_id(value:String):void {
-            _item_id = value;
         }
 
         public function get modified():Boolean {
@@ -200,16 +193,16 @@ package structs.location {
         }
 
         public function get type_string():String {
-          switch (_type) {
-            case ITEM_USER:
-              return "User";
-            case ITEM_WORKSTATION:
-              return "Workstation";
-            case ITEM_DESK:
-              return "Desk";
-            default:
-              return "Mapped Item";
-          }
+            switch (_type) {
+                case ITEM_USER:
+                    return "User";
+                case ITEM_WORKSTATION:
+                    return "Workstation";
+                case ITEM_DESK:
+                    return "Desk";
+                default:
+                    return "Mapped Item";
+            }
         }
     }
 

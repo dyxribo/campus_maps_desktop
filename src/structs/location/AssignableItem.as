@@ -12,7 +12,7 @@ package structs.location {
             var item:AssignableItem = new AssignableItem();
             item.id = json.id;
             item.type = json.type;
-            item.position = Point.read_json(json.position);
+            item._position = Point.read_json(json.position);
             item.assignee = json.assignee;
 
             return item;

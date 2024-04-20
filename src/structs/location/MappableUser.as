@@ -143,7 +143,7 @@ package structs.location {
 
         override public function set id(value:String):void {
             user_lookup.toss(this._id);
-            item_id = this._id = _username = value;
+            this._id = _username = value;
             user_lookup.put(this._id, this);
         }
 

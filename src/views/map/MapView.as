@@ -17,34 +17,35 @@ package views.map {
     import geom.Point;
 
     import models.AccessInjector;
+    import models.MapSearchResult;
     import models.StageInjector;
 
     import modules.Pin;
+    import modules.SearchResultCard;
     import modules.Searchbar;
 
+    import net.blaxstar.starlib.components.Component;
     import net.blaxstar.starlib.components.ContextMenu;
     import net.blaxstar.starlib.components.Dialog;
+    import net.blaxstar.starlib.components.InputTextField;
     import net.blaxstar.starlib.components.ListItem;
+    import net.blaxstar.starlib.components.PlainText;
     import net.blaxstar.starlib.debug.DebugDaemon;
+    import net.blaxstar.starlib.style.Color;
 
-    import structs.location.MappableDesk;
+    import structs.location.AssignableItem;
     import structs.location.MappableItem;
+    import structs.location.MappableUser;
+    import structs.location.Region;
 
     import thirdparty.com.greensock.TweenLite;
+    import thirdparty.org.osflash.signals.Signal;
     import thirdparty.org.osflash.signals.natives.NativeSignal;
 
     import views.dialog.BaseDialogView;
     import views.dialog.DeskDialogView;
-    import thirdparty.org.osflash.signals.Signal;
-    import models.MapSearchResult;
-    import modules.SearchResultCard;
-    import net.blaxstar.starlib.components.Component;
-    import net.blaxstar.starlib.components.PlainText;
-    import structs.location.MappableUser;
-    import net.blaxstar.starlib.style.Color;
-    import structs.location.AssignableItem;
-    import net.blaxstar.starlib.components.InputTextField;
-    import structs.location.Building;
+    import net.blaxstar.starlib.components.Dropdown;
+    import net.blaxstar.starlib.components.Button;
 
     /**
      * TODO: documentation, general cleanup, REMOVE DEBUG STUFF
@@ -53,26 +54,26 @@ package views.map {
 
         private const _ZOOM_FACTOR:Number = 0.1;
 
-        / * PRIVATE VAR * /
-        private var _image_mask:Sprite;
-        private var _image_container:Sprite;
-        private var _searchbar:Searchbar;
-        private var _context_menu:ContextMenu;
-
         // stage injector properties
         private var _stage:Stage;
         // access injector properties
         private var _admin:Boolean;
+        // private var 
+        private var _context_menu:ContextMenu;
+        private var _is_dragging_map:Boolean;
+        private var _dialog_view_cache:Dictionary;
+        private var _current_location:Region;
+        // visual components
+        private var _image_mask:Sprite;
+        private var _image_container:Sprite;
+        private var _searchbar:Searchbar;
+        private var _search_result_card:SearchResultCard;
         private var _new_item_dialog:Dialog;
-
         private var _item_detail_dialog:Dialog;
         private var _detail_dialog_view:BaseDialogView;
-        private var _dialog_view_cache:Dictionary;
         private var _target_pin:Pin;
-        private var _is_dragging_map:Boolean;
-
+        // signals
         private var _on_search_signal:Signal;
-        private var _search_result_card:SearchResultCard;
         private var _on_context_menu_roll_out:NativeSignal;
         private var _on_context_menu_release_outside:NativeSignal;
         private var _on_context_menu_defocus:NativeSignal;
@@ -107,23 +108,19 @@ package views.map {
         }
 
         private function init():void {
+            _dialog_view_cache = new Dictionary(true);
+            _on_search_signal = new Signal(String);
             _image_container = new Sprite();
             _image_mask = new Sprite();
             _searchbar = new Searchbar();
             _item_detail_dialog = new Dialog(this);
-            _dialog_view_cache = new Dictionary(true);
             _context_menu = new ContextMenu();
-            _on_search_signal = new Signal(String);
 
             add_children();
         }
 
         private function add_children():void {
-            //addChild(_image_container);
-            //addChild(_image_mask);
-            //addChild(_searchbar);
             _item_detail_dialog.close();
-
             _item_detail_dialog.add_button("close", _item_detail_dialog.close);
         }
 
@@ -188,8 +185,8 @@ package views.map {
         public function add_pin(pin:Pin):void {
             _image_container.addChild(pin);
             pin.buttonMode = true;
-            pin.x = pin.linked_item.position.x;
-            pin.y = pin.linked_item.position.y;
+            pin.x = pin.linked_item.x;
+            pin.y = pin.linked_item.y;
             pin.addEventListener(MouseEvent.CLICK, on_pin_click);
         }
 
@@ -197,16 +194,16 @@ package views.map {
             var name:PlainText = new PlainText(_image_container);
             name.color = Color.PRODUCT_RED.value;
             if (item is AssignableItem) {
-              var user:MappableUser = MappableItem.user_lookup.pull(AssignableItem(item).assignee) as MappableUser;
-              if (user) {
-                name.text = user.full_name;
-              } else {
-                name.text = item.id;
-              }
+                var user:MappableUser = MappableItem.user_lookup.pull(AssignableItem(item).assignee) as MappableUser;
+                if (user) {
+                    name.text = user.full_name;
+                } else {
+                    name.text = item.id;
+                }
             } else {
-              name.text = item.id;
+                name.text = item.id;
             }
-            name.move(item.position.x - (Component.PADDING * 2), item.position.y - (Component.PADDING * 2));
+            name.move(item.x - (Component.PADDING * 2), item.y - (Component.PADDING * 2));
         }
 
         /**
@@ -245,6 +242,29 @@ package views.map {
             _on_viewport_resize.remove(on_viewport_resize);
         }
 
+        private function create_new_item_dialog(spawn_point:Point = null):void {
+            //  TODO: create seperate options for region/building/floor adds by checking the current view with a flag such as "in_region_view." region pins will be added to its own region map, buildings will be added to a specific region map, and floors won't be added to maps-- however there will be a sort of "floor switcher" that appears on the side of the normal floor view  to switch to a different floor on command. searching for an item on a different floor should also take you to that floor automatically. 
+
+            _new_item_dialog = new Dialog(this);
+            _new_item_dialog.title = "NEW MAPPED ITEM";
+            _new_item_dialog.auto_resize = true;
+
+            var item_name_input:InputTextField = new InputTextField(_new_item_dialog, 0, 0, "Item Name");
+            var item_type_dropdown:Dropdown = new Dropdown(_new_item_dialog, 0, 0, "Item Type");
+            var subsection_selection:Dropdown = new Dropdown(_new_item_dialog, 0, 0, _current_location ? _current_location.get_building(_current_location.building_id).get_floor(_current_location.floor_id).link : "set a location...");
+
+            item_type_dropdown.multi_add_string_array(["Subsection", "User", "Workstation", "Desk", "Printer", "Wall Jack", "Wall Plate", "Generic Item"]);
+            _new_item_dialog.add_button("CANCEL", _new_item_dialog.close, Button.DEPRESSED);
+            _new_item_dialog.add_button("CREATE", function():void {
+                item_name_input.text = "";
+                _new_item_dialog.close();
+            }, Button.GROUNDED);
+
+            if (spawn_point) {
+                _new_item_dialog.move(spawn_point.x - (_new_item_dialog.width / 2), spawn_point.y - (_new_item_dialog.height / 2));
+            }
+        }
+
         /**
          *
          */
@@ -260,7 +280,7 @@ package views.map {
         public function update(data:Object):void {
 
             if (data.hasOwnProperty('current_location')) {
-              var current_location:Building = data["current_location"];
+                _current_location = data["current_location"];
             }
 
             if (data.hasOwnProperty('pan_position')) {
@@ -374,9 +394,9 @@ package views.map {
         }
 
         private function on_right_click(e:MouseEvent):void {
-          if (!_admin) {
-            return;
-          }
+            if (!_admin) {
+                return;
+            }
             e.preventDefault();
 
             // TODO: display context menu with easy actions
@@ -430,14 +450,18 @@ package views.map {
             switch (list_item.label) {
                 case Contexts.CONTEXT_MAP_GENERAL_ADD_ITEM:
                     trace("item creation");
-                    if (!_new_item_dialog) {
-                      _new_item_dialog = new Dialog(this);
-                      var item_name_input:InputTextField = new InputTextField(_new_item_dialog.component_container,0,0,"Item Name")
-                    }
 
                     var location:MappableItem = new MappableItem();
-                    location.position.x = _context_menu.x;
-                    location.position.y = _context_menu.y;
+                    location.x = _context_menu.x;
+                    location.y = _context_menu.y;
+
+                    if (!_new_item_dialog) {
+                        create_new_item_dialog(location.position);
+                    } else {
+                        _new_item_dialog.open();
+                    }
+
+
                     break;
                 case Contexts.CONTEXT_MAP_GENERAL_CREATE_PATH:
                     trace("path creation");
